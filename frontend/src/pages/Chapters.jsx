@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const CHAPTERS = [
   {
@@ -94,24 +95,15 @@ const CHAPTERS = [
 ];
 
 const TAG_COLORS = {
-  Foundations: "bg-zinc-800 text-zinc-400",
-  Legal: "bg-blue-950 text-blue-400",
-  Conflicts: "bg-red-950 text-red-400",
-  Rights: "bg-amber-950 text-amber-400",
-  Finances: "bg-emerald-950 text-emerald-400",
-  Resolution: "bg-purple-950 text-purple-400",
+  Foundations: { background: "#18181b", color: "#71717a" },
+  Legal: { background: "#0c1829", color: "#60a5fa" },
+  Conflicts: { background: "#1c0a0a", color: "#f87171" },
+  Rights: { background: "#1c1200", color: "#fbbf24" },
+  Finances: { background: "#021c10", color: "#34d399" },
+  Resolution: { background: "#110b1e", color: "#a78bfa" },
 };
 
 const TAG_FILTERS = ["All", "Foundations", "Legal", "Conflicts", "Rights", "Finances", "Resolution"];
-
-function StatusBadge({ status }) {
-  const badges = {
-    complete: <span className="text-[11px] font-medium text-green-400">Completed</span>,
-    active: <span className="text-[11px] font-medium text-white">In Progress</span>,
-    locked: <span className="text-[11px] font-medium text-zinc-500">Locked</span>,
-  };
-  return badges[status];
-}
 
 export default function Chapters() {
   const [filter, setFilter] = useState("All");
@@ -120,78 +112,172 @@ export default function Chapters() {
     filter === "All" ? CHAPTERS : CHAPTERS.filter((ch) => ch.tag === filter);
 
   return (
-    <div className="min-h-screen bg-[#090909] text-white font-sans antialiased">
-      {/* NAV */}
-      <header className="sticky top-0 z-50 border-b border-zinc-900 bg-[#090909]/80 backdrop-blur-md">
-        <div className="max-w-[1280px] mx-auto px-6 h-14 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2.5">
-            <div className="h-5 w-5 rounded bg-white flex items-center justify-center">
+    <div style={{ background: "#090909", color: "#fff", minHeight: "100vh" }}>
+      {/* ── NAV ── */}
+      <header
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 50,
+          borderBottom: "1px solid #111",
+          background: "rgba(9,9,9,0.88)",
+          backdropFilter: "blur(12px)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "1280px",
+            margin: "0 auto",
+            padding: "0 24px",
+            height: "56px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Link
+            to="/"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              textDecoration: "none",
+              color: "inherit",
+            }}
+          >
+            <div
+              style={{
+                height: "20px",
+                width: "20px",
+                background: "#fff",
+                borderRadius: "4px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
                 <path d="M1 10L5.5 1 10 10H1z" fill="#090909" />
               </svg>
             </div>
-            <span className="text-[13px] font-semibold tracking-tight">TenantTales</span>
-          </a>
+            <span style={{ fontSize: "13px", fontWeight: 600, letterSpacing: "-0.02em" }}>
+              TenantTales
+            </span>
+          </Link>
 
-          <nav className="hidden md:flex items-center gap-5">
+          <nav style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             {[
               { label: "How it works", href: "/how-it-works" },
               { label: "Chapters", href: "/chapters", active: true },
               { label: "About", href: "/about" },
             ].map((l) => (
-              <a
+              <Link
                 key={l.href}
-                href={l.href}
-                className={`text-[13px] transition-colors ${
-                  l.active ? "text-white font-medium" : "text-zinc-500 hover:text-zinc-200"
-                }`}
+                to={l.href}
+                style={{
+                  fontSize: "13px",
+                  color: l.active ? "#fff" : "#71717a",
+                  fontWeight: l.active ? 500 : 400,
+                  transition: "color 0.12s",
+                  textDecoration: "none",
+                }}
               >
                 {l.label}
-              </a>
+              </Link>
             ))}
           </nav>
 
-          <div className="flex items-center gap-2">
-            <a href="/login" className="text-[13px] text-zinc-400 hover:text-white px-3 py-1.5 transition-colors">
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <Link
+              to="/login"
+              style={{
+                fontSize: "13px",
+                color: "#71717a",
+                padding: "6px 12px",
+                textDecoration: "none",
+                transition: "color 0.12s",
+              }}
+            >
               Sign in
-            </a>
-            <a href="/signup" className="text-[13px] font-medium bg-white text-zinc-950 px-3 py-1.5 rounded-md hover:bg-zinc-100 transition-colors">
+            </Link>
+            <Link
+              to="/signup"
+              style={{
+                fontSize: "13px",
+                fontWeight: 500,
+                background: "#fff",
+                color: "#09090b",
+                padding: "6px 14px",
+                borderRadius: "6px",
+                textDecoration: "none",
+              }}
+            >
               Get started
-            </a>
+            </Link>
           </div>
         </div>
       </header>
 
-      {/* HERO */}
-      <section className="border-b border-zinc-900 py-16 px-6">
-        <div className="max-w-[900px] mx-auto text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <span className="h-px w-8 bg-zinc-700" />
-            <span className="text-[11px] tracking-widest uppercase text-zinc-500">All Chapters</span>
-            <span className="h-px w-8 bg-zinc-700" />
+      {/* ── HERO ── */}
+      <section style={{ borderBottom: "1px solid #111", padding: "64px 24px" }}>
+        <div style={{ maxWidth: "900px", margin: "0 auto", textAlign: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              marginBottom: "16px",
+            }}
+          >
+            <span style={{ height: "1px", width: "32px", background: "#27272a" }}></span>
+            <span
+              style={{
+                fontSize: "11px",
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "#52525b",
+              }}
+            >
+              All Chapters
+            </span>
+            <span style={{ height: "1px", width: "32px", background: "#27272a" }}></span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight leading-[1.08] mb-3">
+          <h1
+            style={{
+              fontSize: "clamp(32px,5vw,48px)",
+              fontWeight: 600,
+              letterSpacing: "-0.04em",
+              marginBottom: "12px",
+            }}
+          >
             The Complete Journey
           </h1>
-          <p className="text-[15px] text-zinc-500 leading-relaxed">
+          <p style={{ fontSize: "15px", color: "#52525b", lineHeight: 1.6 }}>
             10 chapters covering every aspect of tenant rights. Progress through them in order.
           </p>
         </div>
       </section>
 
-      {/* FILTER TABS */}
-      <section className="border-b border-zinc-900 px-6 py-6">
-        <div className="max-w-[900px] mx-auto">
-          <div className="flex flex-wrap gap-2">
+      {/* ── FILTER TABS ── */}
+      <section style={{ borderBottom: "1px solid #111", padding: "24px" }}>
+        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
             {TAG_FILTERS.map((tag) => (
               <button
                 key={tag}
                 onClick={() => setFilter(tag)}
-                className={`text-[12px] font-medium px-3 py-1.5 rounded-md transition-all ${
-                  filter === tag
-                    ? "bg-white text-zinc-950"
-                    : "bg-zinc-900 text-zinc-400 hover:text-zinc-200"
-                }`}
+                style={{
+                  fontSize: "12px",
+                  fontWeight: 500,
+                  padding: "8px 16px",
+                  borderRadius: "6px",
+                  border: "none",
+                  background: filter === tag ? "#fff" : "#111",
+                  color: filter === tag ? "#09090b" : "#71717a",
+                  cursor: "pointer",
+                  transition: "all 0.12s",
+                }}
               >
                 {tag}
               </button>
@@ -200,69 +286,146 @@ export default function Chapters() {
         </div>
       </section>
 
-      {/* CHAPTERS GRID */}
-      <section className="py-16 px-6">
-        <div className="max-w-[900px] mx-auto">
-          <div className="grid grid-cols-1 gap-4">
+      {/* ── CHAPTERS GRID ── */}
+      <section style={{ padding: "64px 24px" }}>
+        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             {filtered.map((ch) => (
               <div
                 key={ch.day}
-                className={`p-6 rounded-lg border transition-all ${
-                  ch.status === "locked"
-                    ? "border-zinc-800 bg-zinc-950/40 opacity-60 cursor-not-allowed"
-                    : "border-zinc-800 bg-zinc-900/30 hover:border-zinc-700 hover:bg-zinc-900/50"
-                }`}
+                style={{
+                  padding: "24px",
+                  borderRadius: "8px",
+                  border: "1px solid #27272a",
+                  background:
+                    ch.status === "locked"
+                      ? "rgba(24,24,27,0.2)"
+                      : "rgba(24,24,27,0.3)",
+                  opacity: ch.status === "locked" ? 0.6 : 1,
+                  cursor: ch.status === "locked" ? "not-allowed" : "pointer",
+                  transition: "all 0.12s",
+                }}
               >
                 {/* Header row */}
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <div className="flex items-baseline gap-3">
-                    <span className="text-2xl font-semibold">Day {String(ch.day).padStart(2, "0")}</span>
-                    <span className={`text-[11px] font-medium px-2 py-1 rounded-md ${TAG_COLORS[ch.tag]}`}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    justifyContent: "space-between",
+                    gap: "16px",
+                    marginBottom: "12px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
+                    <span style={{ fontSize: "24px", fontWeight: 600 }}>
+                      Day {String(ch.day).padStart(2, "0")}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: 500,
+                        padding: "4px 12px",
+                        borderRadius: "4px",
+                        ...TAG_COLORS[ch.tag],
+                      }}
+                    >
                       {ch.tag}
                     </span>
                   </div>
-                  <StatusBadge status={ch.status} />
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      fontWeight: 500,
+                      color:
+                        ch.status === "complete"
+                          ? "#22c55e"
+                          : ch.status === "active"
+                          ? "#fff"
+                          : "#71717a",
+                    }}
+                  >
+                    {ch.status === "complete"
+                      ? "Completed"
+                      : ch.status === "active"
+                      ? "In Progress"
+                      : "Locked"}
+                  </span>
                 </div>
 
                 {/* Title & desc */}
-                <h3 className="text-[18px] font-semibold mb-1.5">{ch.title}</h3>
-                <p className="text-[13px] text-zinc-500 mb-3">{ch.description}</p>
+                <h3 style={{ fontSize: "18px", fontWeight: 600, marginBottom: "8px" }}>
+                  {ch.title}
+                </h3>
+                <p style={{ fontSize: "13px", color: "#52525b", marginBottom: "12px" }}>
+                  {ch.description}
+                </p>
 
-                {/* Expanded details */}
-                <p className="text-[13px] text-zinc-600 leading-relaxed mb-4">{ch.details}</p>
+                {/* Details */}
+                <p
+                  style={{
+                    fontSize: "13px",
+                    color: "#71717a",
+                    lineHeight: 1.6,
+                    marginBottom: "16px",
+                  }}
+                >
+                  {ch.details}
+                </p>
 
                 {/* Meta */}
-                <div className="flex items-center gap-4 text-[12px] text-zinc-500">
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "16px",
+                    fontSize: "12px",
+                    color: "#52525b",
+                  }}
+                >
                   <span>{ch.scenarios} scenarios</span>
                   {ch.status !== "locked" && (
-                    <a
-                      href={ch.status === "active" ? `/game?day=${ch.day}` : "#"}
-                      className={`text-white font-medium ${
-                        ch.status === "active" ? "hover:underline cursor-pointer" : "opacity-50 cursor-not-allowed"
-                      }`}
+                    <Link
+                      to={
+                        ch.status === "active"
+                          ? `/game?day=${ch.day}`
+                          : "#"
+                      }
+                      style={{
+                        color: ch.status === "active" ? "#fff" : "#52525b",
+                        fontWeight: 500,
+                        textDecoration: ch.status === "active" ? "none" : "none",
+                        cursor: ch.status === "active" ? "pointer" : "not-allowed",
+                      }}
                     >
                       {ch.status === "complete" ? "Review" : "Continue"}
-                    </a>
+                    </Link>
                   )}
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Empty state */}
           {filtered.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-[14px] text-zinc-500">No chapters match that filter.</p>
+            <div style={{ textAlign: "center", padding: "48px 0" }}>
+              <p style={{ fontSize: "14px", color: "#52525b" }}>
+                No chapters match that filter.
+              </p>
             </div>
           )}
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="border-t border-zinc-900 py-8 px-6 text-center text-[12px] text-zinc-600">
-        <div className="max-w-[1280px] mx-auto">
-          <p>© 2026 TenantTales. All rights reserved.</p>
-        </div>
+      {/* ── FOOTER ── */}
+      <footer
+        style={{
+          borderTop: "1px solid #111",
+          padding: "32px 24px",
+          textAlign: "center",
+          fontSize: "12px",
+          color: "#52525b",
+        }}
+      >
+        <p>© 2026 TenantTales. All rights reserved.</p>
       </footer>
     </div>
   );

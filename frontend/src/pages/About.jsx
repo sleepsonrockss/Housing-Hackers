@@ -1,103 +1,234 @@
+import { Link } from "react-router-dom";
+
 export default function About() {
   return (
-    <div className="min-h-screen bg-[#090909] text-white font-sans antialiased">
-      {/* NAV */}
-      <header className="sticky top-0 z-50 border-b border-zinc-900 bg-[#090909]/80 backdrop-blur-md">
-        <div className="max-w-[1280px] mx-auto px-6 h-14 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2.5">
-            <div className="h-5 w-5 rounded bg-white flex items-center justify-center">
+    <div style={{ background: "#090909", color: "#fff", minHeight: "100vh" }}>
+      {/* ── NAV ── */}
+      <header
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 50,
+          borderBottom: "1px solid #111",
+          background: "rgba(9,9,9,0.88)",
+          backdropFilter: "blur(12px)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "1280px",
+            margin: "0 auto",
+            padding: "0 24px",
+            height: "56px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Link
+            to="/"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              textDecoration: "none",
+              color: "inherit",
+            }}
+          >
+            <div
+              style={{
+                height: "20px",
+                width: "20px",
+                background: "#fff",
+                borderRadius: "4px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
                 <path d="M1 10L5.5 1 10 10H1z" fill="#090909" />
               </svg>
             </div>
-            <span className="text-[13px] font-semibold tracking-tight">TenantTales</span>
-          </a>
+            <span style={{ fontSize: "13px", fontWeight: 600, letterSpacing: "-0.02em" }}>
+              TenantTales
+            </span>
+          </Link>
 
-          <nav className="hidden md:flex items-center gap-5">
+          <nav style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             {[
               { label: "How it works", href: "/how-it-works" },
               { label: "Chapters", href: "/chapters" },
               { label: "About", href: "/about", active: true },
             ].map((l) => (
-              <a
+              <Link
                 key={l.href}
-                href={l.href}
-                className={`text-[13px] transition-colors ${
-                  l.active ? "text-white font-medium" : "text-zinc-500 hover:text-zinc-200"
-                }`}
+                to={l.href}
+                style={{
+                  fontSize: "13px",
+                  color: l.active ? "#fff" : "#71717a",
+                  fontWeight: l.active ? 500 : 400,
+                  transition: "color 0.12s",
+                  textDecoration: "none",
+                }}
               >
                 {l.label}
-              </a>
+              </Link>
             ))}
           </nav>
 
-          <div className="flex items-center gap-2">
-            <a href="/login" className="text-[13px] text-zinc-400 hover:text-white px-3 py-1.5 transition-colors">
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <Link
+              to="/login"
+              style={{
+                fontSize: "13px",
+                color: "#71717a",
+                padding: "6px 12px",
+                textDecoration: "none",
+                transition: "color 0.12s",
+              }}
+            >
               Sign in
-            </a>
-            <a href="/signup" className="text-[13px] font-medium bg-white text-zinc-950 px-3 py-1.5 rounded-md hover:bg-zinc-100 transition-colors">
+            </Link>
+            <Link
+              to="/signup"
+              style={{
+                fontSize: "13px",
+                fontWeight: 500,
+                background: "#fff",
+                color: "#09090b",
+                padding: "6px 14px",
+                borderRadius: "6px",
+                textDecoration: "none",
+              }}
+            >
               Get started
-            </a>
+            </Link>
           </div>
         </div>
       </header>
 
-      {/* HERO */}
-      <section className="border-b border-zinc-900 py-24 px-6">
-        <div className="max-w-[800px] mx-auto text-center">
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <span className="h-px w-8 bg-zinc-700" />
-            <span className="text-[11px] tracking-widest uppercase text-zinc-500">Our Mission</span>
-            <span className="h-px w-8 bg-zinc-700" />
+      {/* ── HERO ── */}
+      <section style={{ borderBottom: "1px solid #111", padding: "96px 24px" }}>
+        <div style={{ maxWidth: "800px", margin: "0 auto", textAlign: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              marginBottom: "24px",
+            }}
+          >
+            <span style={{ height: "1px", width: "32px", background: "#27272a" }}></span>
+            <span
+              style={{
+                fontSize: "11px",
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "#52525b",
+              }}
+            >
+              Our Mission
+            </span>
+            <span style={{ height: "1px", width: "32px", background: "#27272a" }}></span>
           </div>
-          <h1 className="text-5xl md:text-6xl font-semibold tracking-tight leading-[1.08] mb-6">
+          <h1
+            style={{
+              fontSize: "clamp(36px,5vw,54px)",
+              fontWeight: 600,
+              letterSpacing: "-0.04em",
+              marginBottom: "24px",
+            }}
+          >
             Empower renters with knowledge.
           </h1>
-          <p className="text-[16px] text-zinc-500 leading-relaxed">
-            Too many tenants make decisions in ignorance of their rights. TenantTales exists to change that through immersive, interactive learning.
+          <p style={{ fontSize: "16px", color: "#52525b", lineHeight: 1.6 }}>
+            Too many tenants make decisions in ignorance of their rights. TenantTales exists to
+            change that through immersive, interactive learning.
           </p>
         </div>
       </section>
 
-      {/* THE PROBLEM */}
-      <section className="border-b border-zinc-900 py-20 px-6">
-        <div className="max-w-[900px] mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+      {/* ── THE PROBLEM ── */}
+      <section style={{ borderBottom: "1px solid #111", padding: "80px 24px" }}>
+        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "48px",
+              alignItems: "center",
+            }}
+          >
             <div>
-              <h2 className="text-3xl font-semibold mb-6">The Problem We Solve</h2>
-              <p className="text-[15px] text-zinc-500 leading-relaxed mb-4">
-                Tenant rights are complex, vary by region, and are poorly understood. Most renters learn too late—after signing a bad lease, paying illegal fees, or facing unlawful eviction.
+              <h2 style={{ fontSize: "28px", fontWeight: 600, marginBottom: "24px" }}>
+                The Problem We Solve
+              </h2>
+              <p style={{ fontSize: "15px", color: "#52525b", lineHeight: 1.6, marginBottom: "16px" }}>
+                Tenant rights are complex, vary by region, and are poorly understood. Most renters
+                learn too late—after signing a bad lease, paying illegal fees, or facing unlawful
+                eviction.
               </p>
-              <p className="text-[15px] text-zinc-500 leading-relaxed">
-                Traditional resources are dry, inaccessible, and don't stick. People learn best by doing, not reading. That's where TenantTales comes in.
+              <p style={{ fontSize: "15px", color: "#52525b", lineHeight: 1.6 }}>
+                Traditional resources are dry, inaccessible, and don't stick. People learn best by
+                doing, not reading. That's where TenantTales comes in.
               </p>
             </div>
-            <div className="p-8 rounded-lg border border-zinc-800 bg-zinc-900/40">
-              <div className="space-y-4">
-                <div>
-                  <div className="text-2xl font-semibold text-white mb-1">1 in 4</div>
-                  <p className="text-[12px] text-zinc-500">Tenants are unaware of basic rights</p>
+
+            <div
+              style={{
+                padding: "32px",
+                borderRadius: "8px",
+                border: "1px solid #27272a",
+                background: "rgba(24,24,27,0.2)",
+              }}
+            >
+              <div style={{ marginBottom: "16px" }}>
+                <div style={{ fontSize: "24px", fontWeight: 600, color: "#fff", marginBottom: "4px" }}>
+                  1 in 4
                 </div>
-                <div className="border-t border-zinc-800 pt-4">
-                  <div className="text-2xl font-semibold text-white mb-1">$500M+</div>
-                  <p className="text-[12px] text-zinc-500">In illegal landlord fees paid annually</p>
+                <p style={{ fontSize: "12px", color: "#52525b" }}>
+                  Tenants are unaware of basic rights
+                </p>
+              </div>
+
+              <div style={{ borderTop: "1px solid #27272a", paddingTop: "16px", marginBottom: "16px" }}>
+                <div style={{ fontSize: "24px", fontWeight: 600, color: "#fff", marginBottom: "4px" }}>
+                  $500M+
                 </div>
-                <div className="border-t border-zinc-800 pt-4">
-                  <div className="text-2xl font-semibold text-white mb-1">40%</div>
-                  <p className="text-[12px] text-zinc-500">Of evictions lack proper legal notice</p>
+                <p style={{ fontSize: "12px", color: "#52525b" }}>
+                  In illegal landlord fees paid annually
+                </p>
+              </div>
+
+              <div style={{ borderTop: "1px solid #27272a", paddingTop: "16px" }}>
+                <div style={{ fontSize: "24px", fontWeight: 600, color: "#fff", marginBottom: "4px" }}>
+                  40%
                 </div>
+                <p style={{ fontSize: "12px", color: "#52525b" }}>
+                  Of evictions lack proper legal notice
+                </p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* OUR APPROACH */}
-      <section className="border-b border-zinc-900 py-20 px-6">
-        <div className="max-w-[900px] mx-auto">
-          <h2 className="text-3xl font-semibold mb-12">Our Approach</h2>
+      {/* ── OUR APPROACH ── */}
+      <section style={{ borderBottom: "1px solid #111", padding: "80px 24px" }}>
+        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+          <h2 style={{ fontSize: "28px", fontWeight: 600, marginBottom: "48px" }}>
+            Our Approach
+          </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: "32px",
+            }}
+          >
             {[
               {
                 title: "Scenario-Based",
@@ -112,21 +243,35 @@ export default function About() {
                 desc: "Clear, jargon-free language. Designed for anyone, regardless of background or experience.",
               },
             ].map((item) => (
-              <div key={item.title} className="p-6 rounded-lg border border-zinc-800 bg-zinc-900/20">
-                <h3 className="text-[15px] font-semibold mb-2">{item.title}</h3>
-                <p className="text-[13px] text-zinc-500 leading-relaxed">{item.desc}</p>
+              <div
+                key={item.title}
+                style={{
+                  padding: "24px",
+                  borderRadius: "8px",
+                  border: "1px solid #27272a",
+                  background: "rgba(24,24,27,0.15)",
+                }}
+              >
+                <h3 style={{ fontSize: "15px", fontWeight: 600, marginBottom: "8px" }}>
+                  {item.title}
+                </h3>
+                <p style={{ fontSize: "13px", color: "#52525b", lineHeight: 1.6 }}>
+                  {item.desc}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* VALUES */}
-      <section className="border-b border-zinc-900 py-20 px-6">
-        <div className="max-w-[900px] mx-auto">
-          <h2 className="text-3xl font-semibold mb-12">Our Values</h2>
+      {/* ── VALUES ── */}
+      <section style={{ borderBottom: "1px solid #111", padding: "80px 24px" }}>
+        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+          <h2 style={{ fontSize: "28px", fontWeight: 600, marginBottom: "48px" }}>
+            Our Values
+          </h2>
 
-          <div className="space-y-8">
+          <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
             {[
               {
                 title: "Accuracy",
@@ -146,20 +291,32 @@ export default function About() {
               },
             ].map((item) => (
               <div key={item.title}>
-                <h3 className="text-[15px] font-semibold mb-2">{item.title}</h3>
-                <p className="text-[13px] text-zinc-500 leading-relaxed">{item.desc}</p>
+                <h3 style={{ fontSize: "15px", fontWeight: 600, marginBottom: "8px" }}>
+                  {item.title}
+                </h3>
+                <p style={{ fontSize: "13px", color: "#52525b", lineHeight: 1.6 }}>
+                  {item.desc}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* TEAM */}
-      <section className="border-b border-zinc-900 py-20 px-6">
-        <div className="max-w-[900px] mx-auto">
-          <h2 className="text-3xl font-semibold mb-12">The Team</h2>
+      {/* ── TEAM ── */}
+      <section style={{ borderBottom: "1px solid #111", padding: "80px 24px" }}>
+        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+          <h2 style={{ fontSize: "28px", fontWeight: 600, marginBottom: "48px" }}>
+            The Team
+          </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, 1fr)",
+              gap: "32px",
+            }}
+          >
             {[
               {
                 name: "Jordan Chen",
@@ -182,37 +339,70 @@ export default function About() {
                 bio: "Wrote all 48 scenarios based on real tenant experiences. Fact-checks every legal claim.",
               },
             ].map((person) => (
-              <div key={person.name} className="p-6 rounded-lg border border-zinc-800 bg-zinc-900/20">
-                <h3 className="text-[14px] font-semibold text-white">{person.name}</h3>
-                <p className="text-[12px] text-zinc-400 mb-2">{person.role}</p>
-                <p className="text-[13px] text-zinc-500 leading-relaxed">{person.bio}</p>
+              <div
+                key={person.name}
+                style={{
+                  padding: "24px",
+                  borderRadius: "8px",
+                  border: "1px solid #27272a",
+                  background: "rgba(24,24,27,0.15)",
+                }}
+              >
+                <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#fff", marginBottom: "4px" }}>
+                  {person.name}
+                </h3>
+                <p style={{ fontSize: "12px", color: "#71717a", marginBottom: "8px" }}>
+                  {person.role}
+                </p>
+                <p style={{ fontSize: "13px", color: "#52525b", lineHeight: 1.6 }}>
+                  {person.bio}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-20 px-6 text-center">
-        <div className="max-w-[600px] mx-auto">
-          <h2 className="text-3xl font-semibold mb-4">Join the Movement</h2>
-          <p className="text-[15px] text-zinc-500 mb-8 leading-relaxed">
+      {/* ── CTA ── */}
+      <section style={{ padding: "80px 24px", textAlign: "center" }}>
+        <div style={{ maxWidth: "600px", margin: "0 auto" }}>
+          <h2 style={{ fontSize: "28px", fontWeight: 600, marginBottom: "16px" }}>
+            Join the Movement
+          </h2>
+          <p style={{ fontSize: "15px", color: "#52525b", marginBottom: "32px", lineHeight: 1.6 }}>
             Help us empower the next generation of informed, confident renters.
           </p>
-          <a
-            href="/signup"
-            className="inline-flex items-center gap-2 bg-white text-zinc-950 text-[13px] font-semibold px-5 py-2.5 rounded-md hover:bg-zinc-100 transition-all"
+          <Link
+            to="/signup"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              background: "#fff",
+              color: "#09090b",
+              fontSize: "13px",
+              fontWeight: 600,
+              padding: "10px 20px",
+              borderRadius: "6px",
+              textDecoration: "none",
+            }}
           >
             Get Started Today
-          </a>
+          </Link>
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="border-t border-zinc-900 py-8 px-6 text-center text-[12px] text-zinc-600">
-        <div className="max-w-[1280px] mx-auto">
-          <p>© 2026 TenantTales. All rights reserved.</p>
-        </div>
+      {/* ── FOOTER ── */}
+      <footer
+        style={{
+          borderTop: "1px solid #111",
+          padding: "32px 24px",
+          textAlign: "center",
+          fontSize: "12px",
+          color: "#52525b",
+        }}
+      >
+        <p>© 2026 TenantTales. All rights reserved.</p>
       </footer>
     </div>
   );
