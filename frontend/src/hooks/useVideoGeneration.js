@@ -46,6 +46,38 @@ export function useVideoGeneration() {
   };
 
   /**
+   * Generate scene intro (no choice) — called when scenario loads
+   */
+  const generateScene = async (scenarioId) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/video/scene`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scenarioId }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to generate scene");
+      }
+
+      const data = await response.json();
+      setVideoData(data);
+      return data;
+    } catch (err) {
+      const message = err.message || "Error generating scene";
+      setError(message);
+      console.error("Scene generation error:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
    * Generate only the video script
    */
   const generateScript = async (scenarioId, choiceId) => {
@@ -152,6 +184,7 @@ export function useVideoGeneration() {
     loading,
     error,
     videoData,
+    generateScene,
     generateFullVideo,
     generateScript,
     generateVisuals,

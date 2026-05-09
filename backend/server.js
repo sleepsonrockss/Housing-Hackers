@@ -13,7 +13,7 @@ const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:5173" }));
 app.use(express.json());
 
 // Initialize Gemini AI
@@ -230,6 +230,35 @@ Keep it under 60 seconds of spoken time.
   }
 }
 
+/**
+ * Generate a scene intro (no choice required) — shown on page load
+ */
+async function generateSceneIntro(scenario) {
+  const prompt = `
+You are a narrator for an educational video game about tenant rights.
+Describe the opening scene for this scenario in a way that immerses the player.
+
+Scenario title: ${scenario.title}
+Chapter: ${scenario.chapter}
+Situation: ${scenario.situation}
+Character mood: ${scenario.mood}
+
+Produce THREE short sections:
+
+**NARRATION** (2-3 sentences): Set the emotional scene. Speak directly to the player as "you". Conversational and empathetic.
+
+**SCRIPT** (3-5 lines of dialogue/action): Show how the situation unfolds. Include character actions and brief dialogue if appropriate.
+
+**VISUAL DIRECTION** (2-3 sentences): Describe the visual setting — colours, camera angle, props, lighting — so an animator can render it.
+
+Keep the total under 150 words. Do not reveal the choices yet.
+`;
+
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const result = await model.generateContent(prompt);
+  return result.response.text();
+}
+
 // ============================================
 // API ROUTES
 // ============================================
@@ -264,6 +293,28 @@ app.get("/api/scenarios/:id", (req, res) => {
   }
 
   res.json(scenario);
+});
+
+/**
+ * POST /api/video/scene
+ * Generate scene intro for a scenario (no choice needed — called on page load)
+ * Body: { scenarioId: number }
+ */
+app.post("/api/video/scene", async (req, res) => {
+  try {
+    const { scenarioId } = req.body;
+    if (!scenarioId) {
+      return res.status(400).json({ error: "scenarioId is required" });
+    }
+    const scenario = SCENARIOS.find((s) => s.id === scenarioId);
+    if (!scenario) {
+      return res.status(404).json({ error: "Scenario not found" });
+    }
+    const sceneContent = await generateSceneIntro(scenario);
+    res.json({ scenarioId, sceneContent, timestamp: new Date().toISOString() });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 /**
