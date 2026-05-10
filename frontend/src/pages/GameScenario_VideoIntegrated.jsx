@@ -315,15 +315,40 @@ export default function GameScenario() {
           {runComplete && scenario.chapter >= CHAPTER_COUNT ? "Done" : scenarioIndexLabel(scenario)}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
-          <div style={{ display: "flex", gap: "16px", fontSize: "12px", color: "#a1a1aa" }}>
-            <span>
-              Money <strong style={{ color: "#fafafa" }}>${stats.money}</strong>
-            </span>
-            <span>
-              Stress <strong style={{ color: "#fafafa" }}>{stats.stress}</strong>
-              <span style={{ color: "#52525b", fontWeight: 400 }}> / 100</span>
-            </span>
+          {/* ── MONEY BAR ── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "3px", minWidth: "120px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#71717a" }}>
+              <span>💵 Money</span>
+              <strong style={{ color: "#22c55e" }}>${stats.money}</strong>
+            </div>
+            <div style={{ height: "6px", borderRadius: "3px", background: "#27272a", overflow: "hidden" }}>
+              <div style={{
+                height: "100%",
+                borderRadius: "3px",
+                width: `${Math.max(0, Math.min(100, (stats.money / 1850) * 100))}%`,
+                background: "#22c55e",
+                transition: "width 0.6s ease, background 0.4s ease",
+              }} />
+            </div>
           </div>
+
+          {/* ── STRESS BAR ── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "3px", minWidth: "120px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#71717a" }}>
+              <span>🧠 Stress</span>
+              <strong style={{ color: "#f87171" }}>{stats.stress}<span style={{ fontWeight: 400, color: "#52525b" }}>/100</span></strong>
+            </div>
+            <div style={{ height: "6px", borderRadius: "3px", background: "#27272a", overflow: "hidden" }}>
+              <div style={{
+                height: "100%",
+                borderRadius: "3px",
+                width: `${Math.max(0, Math.min(100, stats.stress))}%`,
+                background: "#f87171",
+                transition: "width 0.6s ease, background 0.4s ease",
+              }} />
+            </div>
+          </div>
+
           <Link
             to="/chapters"
             style={{ fontSize: "12px", color: "#e4e4e7", textDecoration: "underline", textUnderlineOffset: "3px" }}
