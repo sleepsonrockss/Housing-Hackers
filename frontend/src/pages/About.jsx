@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import GameNavActions from "../components/GameNavActions";
+import SiteAuthHeaderLinks from "../components/SiteAuthHeaderLinks";
 import { getResumeGameHref } from "../game/playerSessionPersist";
 
 export default function About() {
@@ -27,40 +29,43 @@ export default function About() {
             justifyContent: "space-between",
           }}
         >
-          <Link
-            to="/"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              textDecoration: "none",
-              color: "inherit",
-            }}
-          >
-            <div
+          <div style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+            <Link
+              to="/"
               style={{
-                height: "20px",
-                width: "20px",
-                background: "#fff",
-                borderRadius: "4px",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
+                gap: "10px",
+                textDecoration: "none",
+                color: "inherit",
               }}
             >
-              <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                <path d="M1 10L5.5 1 10 10H1z" fill="#090909" />
-              </svg>
-            </div>
-            <span style={{ fontSize: "13px", fontWeight: 600, letterSpacing: "-0.02em" }}>
-              TenantTales
-            </span>
-          </Link>
+              <div
+                style={{
+                  height: "20px",
+                  width: "20px",
+                  background: "#fff",
+                  borderRadius: "4px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                  <path d="M1 10L5.5 1 10 10H1z" fill="#090909" />
+                </svg>
+              </div>
+              <span style={{ fontSize: "13px", fontWeight: 600, letterSpacing: "-0.02em" }}>
+                TenantTales
+              </span>
+            </Link>
+            <SiteAuthHeaderLinks />
+          </div>
 
           <nav style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             {[
               { label: "How it works", href: "/how-it-works" },
-              { label: "Chapters", href: "/chapters" },
+              { label: "Days", href: "/chapters" },
               { label: "About", href: "/about", active: true },
             ].map((l) => (
               <Link
@@ -80,18 +85,6 @@ export default function About() {
           </nav>
 
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <Link
-              to="/login"
-              style={{
-                fontSize: "13px",
-                color: "#71717a",
-                padding: "6px 12px",
-                textDecoration: "none",
-                transition: "color 0.12s",
-              }}
-            >
-              Sign in
-            </Link>
             <Link
               to={playHref}
               style={{
@@ -315,50 +308,32 @@ export default function About() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
+              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
               gap: "32px",
             }}
           >
             {[
-              {
-                name: "Jordan Chen",
-                role: "Founder & Game Designer",
-                bio: "Former tenant advocate with 8 years in housing policy. Designed TenantTales to fix the knowledge gap.",
-              },
-              {
-                name: "Alex Rivera",
-                role: "Legal Advisor",
-                bio: "Tenant rights lawyer specializing in residential law. Ensures all content is accurate and current.",
-              },
-              {
-                name: "Sam Patel",
-                role: "Engineering Lead",
-                bio: "Full-stack engineer passionate about accessible learning tools. Built the platform from the ground up.",
-              },
-              {
-                name: "Morgan Lee",
-                role: "Content & Research",
-                bio: "Wrote all 48 scenarios based on real tenant experiences. Fact-checks every legal claim.",
-              },
-            ].map((person) => (
+              "Kaila Commet",
+              "Animesh Tirkey",
+              "Estella Li",
+              "Ucchena Ibeziako",
+              "Rafiul Alam Khan",
+            ].map((name) => (
               <div
-                key={person.name}
+                key={name}
                 style={{
                   padding: "24px",
                   borderRadius: "8px",
                   border: "1px solid #27272a",
                   background: "rgba(24,24,27,0.15)",
+                  minHeight: "100px",
+                  display: "flex",
+                  alignItems: "center",
                 }}
               >
-                <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#fff", marginBottom: "4px" }}>
-                  {person.name}
+                <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#fff", margin: 0 }}>
+                  {name}
                 </h3>
-                <p style={{ fontSize: "12px", color: "#71717a", marginBottom: "8px" }}>
-                  {person.role}
-                </p>
-                <p style={{ fontSize: "13px", color: "#52525b", lineHeight: 1.6 }}>
-                  {person.bio}
-                </p>
               </div>
             ))}
           </div>
@@ -392,6 +367,20 @@ export default function About() {
             Play now
           </Link>
         </div>
+      </section>
+
+      <section
+        style={{
+          borderTop: "1px solid #111",
+          padding: "28px 24px 36px",
+          maxWidth: "720px",
+          margin: "0 auto",
+        }}
+      >
+        <p style={{ margin: "0 0 14px", fontSize: "12px", fontWeight: 600, letterSpacing: "0.06em", color: "#71717a", textTransform: "uppercase" }}>
+          Navigate
+        </p>
+        <GameNavActions />
       </section>
 
       {/* ── FOOTER ── */}

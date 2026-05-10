@@ -1,5 +1,8 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Eye, EyeOff, Check } from "lucide-react";
+import GameNavActions from "../components/GameNavActions";
+import SiteAuthHeaderLinks from "../components/SiteAuthHeaderLinks";
 
 export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
@@ -37,23 +40,17 @@ export default function SignUp() {
     <div className="min-h-screen bg-[#090909] text-white font-sans antialiased flex flex-col">
       {/* NAV */}
       <header className="sticky top-0 z-50 border-b border-zinc-900 bg-[#090909]/80 backdrop-blur-md">
-        <div className="max-w-[1280px] mx-auto px-6 h-14 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2.5">
-            <div className="h-5 w-5 rounded bg-white flex items-center justify-center">
-              <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                <path d="M1 10L5.5 1 10 10H1z" fill="#090909" />
-              </svg>
-            </div>
-            <span className="text-[13px] font-semibold tracking-tight">TenantTales</span>
-          </a>
-
-          <div className="flex items-center gap-2">
-            <a href="/login" className="text-[13px] text-zinc-400 hover:text-white px-3 py-1.5 transition-colors">
-              Have an account?
-            </a>
-            <a href="/login" className="text-[13px] font-medium bg-white text-zinc-950 px-3 py-1.5 rounded-md hover:bg-zinc-100 transition-colors">
-              Sign in
-            </a>
+        <div className="max-w-[1280px] mx-auto px-6 h-14 flex items-center">
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center gap-2.5 no-underline text-inherit">
+              <div className="h-5 w-5 rounded bg-white flex items-center justify-center">
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                  <path d="M1 10L5.5 1 10 10H1z" fill="#090909" />
+                </svg>
+              </div>
+              <span className="text-[13px] font-semibold tracking-tight">TenantTales</span>
+            </Link>
+            <SiteAuthHeaderLinks omit="signup" />
           </div>
         </div>
       </header>
@@ -216,15 +213,12 @@ export default function SignUp() {
             </button>
           </div>
 
-          {/* Login link */}
-          <p className="text-center text-[13px] text-zinc-500">
-            Already have an account?{" "}
-            <a href="/login" className="text-white font-medium hover:underline">
-              Sign in
-            </a>
-          </p>
         </div>
       </main>
+
+      <div className="max-w-lg mx-auto px-6 pb-4 flex justify-center border-t border-zinc-900 pt-6">
+        <GameNavActions compact />
+      </div>
 
       {/* FOOTER */}
       <footer className="border-t border-zinc-900 py-6 px-6 text-center text-[12px] text-zinc-600">

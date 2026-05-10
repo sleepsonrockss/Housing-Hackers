@@ -1,6 +1,5 @@
 /**
- * NextTenant narrative structure (player-facing).
- * Workbook uses many “days”; the game condenses those into 5 playable chapters.
+ * NextTenant narrative structure (player-facing): five days of scenarios.
  *
  * System rules (design targets — wire in gameplay / persistence as you build):
  * - Reentry: failing the course for non-monetary reasons routes through a reentry track (separate from money failure).
@@ -26,7 +25,7 @@ export const GAME_SYSTEM_RULES = {
   },
 };
 
-/** Canonical five chapters (workbook day spans are the curriculum source range each chapter absorbs). */
+/** Canonical five days (internal `chapter` index 1–5 matches URL `?day=`). */
 export const GAME_CHAPTERS = [
   {
     chapter: 1,
@@ -80,25 +79,19 @@ export const CHAPTER_COUNT = GAME_CHAPTERS.length;
 /** Sum of `estimatedScenarios` (planning figure until content is authored per chapter). */
 export const ESTIMATED_SCENARIO_TOTAL = GAME_CHAPTERS.reduce((sum, c) => sum + c.estimatedScenarios, 0);
 
+/** Shown on landing / How it works (player-facing total; may differ from planning sum). */
+export const DISPLAY_SCENARIO_TOTAL = 48;
+
 const TAG_FILTERS = ["All", "Money", "Rental", "People", "Burnout", "Future"];
 
-/** Chapters grid: `day` is chapter index (1–5). Review: `/game/day/N`; play: `/game?day=N`. */
+/** Days list (player-facing day index 1–5). Review: `/game/day/N`; play: `/game?day=N`. */
 export function getChaptersPageItems() {
-  return GAME_CHAPTERS.map((c, i) => {
-    const [d0, d1] = c.workbookDaySpan;
-    return {
-      day: c.chapter,
-      workbookDayFrom: d0,
-      workbookDayTo: d1,
-      title: c.shortTitle,
-      subtitle: c.label,
-      description: c.coreTheme,
-      tag: c.pillTag,
-      scenarios: c.estimatedScenarios,
-      status: i === 0 ? "active" : "locked",
-      details: `Condenses workbook Days ${d0}–${d1}. ${c.coreTheme}`,
-    };
-  });
+  return GAME_CHAPTERS.map((c, i) => ({
+    day: c.chapter,
+    title: c.shortTitle,
+    tag: c.pillTag,
+    status: i === 0 ? "active" : "locked",
+  }));
 }
 
 /** Landing hero strip — demo progress: first chapter in progress. */

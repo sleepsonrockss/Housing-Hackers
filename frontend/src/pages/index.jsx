@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CHAPTER_COUNT, getIndexChaptersDemo } from "../game/gameStructure";
+import { CHAPTER_COUNT, DISPLAY_SCENARIO_TOTAL, getIndexChaptersDemo } from "../game/gameStructure";
 
 // ── Utility ──────────────────────────────────────────────
 const cn = (...classes) => classes.filter(Boolean).join(" ");
@@ -99,10 +99,8 @@ function ChapterCard({ chapter, isSelected, onClick }) {
           </p>
           <div className="mt-1.5 flex items-center gap-2">
             <span className="text-[10px] text-zinc-700">
-              Ch. {String(chapter.day).padStart(2, "0")}
+              Day {String(chapter.day).padStart(2, "0")}
             </span>
-            <span className="text-zinc-800">·</span>
-            <span className="text-[10px] text-zinc-700">{chapter.scenarios} scenarios</span>
           </div>
         </div>
       </div>
@@ -119,7 +117,7 @@ function ProgressBar({ percent }) {
           Progress
         </span>
         <span className="text-[11px] text-zinc-400 font-medium">
-          {complete} / {CHAPTERS.length} chapters
+          {complete} / {CHAPTERS.length} days
         </span>
       </div>
 
@@ -157,22 +155,38 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#090909] text-white font-sans antialiased flex flex-col">
       {/* ── NAV ── */}
       <header className="sticky top-0 z-50 border-b border-zinc-900 bg-[#090909]/80 backdrop-blur-md">
-        <div className="max-w-[1280px] mx-auto px-6 h-14 flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-2.5">
-            <div className="h-5 w-5 rounded bg-white flex items-center justify-center">
-              <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                <path d="M1 10L5.5 1 10 10H1z" fill="#090909" />
-              </svg>
+        <div className="max-w-[1280px] mx-auto px-6 h-14 flex items-center">
+          {/* Logo + preview-only auth (entry only here, not elsewhere) */}
+          <div className="flex items-center shrink-0">
+            <div className="flex items-center gap-2.5">
+              <div className="h-5 w-5 rounded bg-white flex items-center justify-center">
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                  <path d="M1 10L5.5 1 10 10H1z" fill="#090909" />
+                </svg>
+              </div>
+              <span className="text-[13px] font-semibold tracking-tight text-white">
+                TenantTales
+              </span>
             </div>
-            <span className="text-[13px] font-semibold tracking-tight text-white">
-              TenantTales
-            </span>
+            <nav
+              aria-label="Account (coming soon)"
+              className="ml-3 sm:ml-4 inline-flex items-center gap-2 border-l border-zinc-800 pl-3 sm:pl-4"
+            >
+              <a href="/login" className="text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors no-underline">
+                Sign in
+              </a>
+              <span className="text-zinc-700 select-none" aria-hidden>
+                ·
+              </span>
+              <a href="/signup" className="text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors no-underline">
+                Sign up
+              </a>
+            </nav>
           </div>
 
           {/* Nav links */}
-          <nav className="hidden md:flex items-center gap-5">
-            {["How it works", "Chapters", "About"].map((l) => (
+          <nav className="hidden md:flex items-center gap-5 ml-auto">
+            {["How it works", "Days", "About"].map((l) => (
               <a
                 key={l}
                 href="#"
@@ -182,22 +196,6 @@ export default function LandingPage() {
               </a>
             ))}
           </nav>
-
-          {/* Auth */}
-          <div className="flex items-center gap-2">
-            <a
-              href="/login"
-              className="text-[13px] text-zinc-400 hover:text-white px-3 py-1.5 transition-colors"
-            >
-              Sign in
-            </a>
-            <a
-              href="/signup"
-              className="text-[13px] font-medium bg-white text-zinc-950 px-3 py-1.5 rounded-md hover:bg-zinc-100 transition-colors"
-            >
-              Get started
-            </a>
-          </div>
         </div>
       </header>
 
@@ -224,7 +222,7 @@ export default function LandingPage() {
           {/* Sub */}
           <p className="text-[15px] text-zinc-500 text-center max-w-[380px] leading-relaxed mb-10">
             Face real scenarios. Make decisions. Learn tenant rights through
-            an immersive, chapter-based game.
+            an immersive, five-day game.
           </p>
 
           {/* Progress */}
@@ -252,11 +250,10 @@ export default function LandingPage() {
           </div>
 
           {/* Stats */}
-          <div className="mt-16 flex items-center gap-8 border-t border-zinc-900 pt-8 w-full max-w-[380px] justify-center">
+          <div className="mt-16 flex items-center gap-10 border-t border-zinc-900 pt-8 w-full max-w-[380px] justify-center">
             {[
-              { n: "10", l: "Chapters" },
-              { n: "48", l: "Scenarios" },
-              { n: "120+", l: "Outcomes" },
+              { n: String(CHAPTER_COUNT), l: "Days" },
+              { n: String(DISPLAY_SCENARIO_TOTAL), l: "Scenarios" },
             ].map(({ n, l }) => (
               <div key={l} className="text-center">
                 <div className="text-xl font-semibold text-white">{n}</div>
@@ -266,19 +263,19 @@ export default function LandingPage() {
           </div>
         </main>
 
-        {/* ── RIGHT PANEL: CHAPTERS ── */}
+        {/* ── RIGHT PANEL: DAYS ── */}
         <aside className="w-[320px] shrink-0 border-l border-zinc-900 overflow-y-auto max-h-[calc(100vh-56px)] sticky top-14 py-6 px-4">
           {/* Panel header */}
           <div className="flex items-center justify-between mb-5 px-1">
             <span className="text-[11px] tracking-widest uppercase text-zinc-600">
-              Chapters
+              Days
             </span>
             <span className="text-[11px] text-zinc-700">
               {CHAPTERS.filter((c) => c.status === "complete").length} done
             </span>
           </div>
 
-          {/* Chapter list */}
+          {/* Day list */}
           <div className="space-y-0">
             {CHAPTERS.map((ch) => (
               <ChapterCard
@@ -292,7 +289,7 @@ export default function LandingPage() {
 
           {/* Bottom hint */}
           <p className="mt-6 px-1 text-[10px] text-zinc-800 leading-relaxed">
-            Complete each chapter to unlock the next. Your progress is saved automatically.
+            Complete each day to unlock the next. Your progress is saved automatically.
           </p>
         </aside>
       </div>

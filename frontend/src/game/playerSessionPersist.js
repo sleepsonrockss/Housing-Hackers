@@ -95,6 +95,9 @@ export function clearPersistedRun() {
   }
 }
 
+/** New run: resets money ($1850), stress, flags, answers, and chapter progress in this browser. */
+export const RESTART_GAME_HREF = "/game?day=1&reset=1";
+
 /** `/game?day=N` — fresh run uses `reset=1` so money/stress always match defaults. */
 export function getResumeGameHref() {
   const run = loadPersistedRun();

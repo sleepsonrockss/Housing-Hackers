@@ -10,7 +10,7 @@ function scrollToId(id) {
 }
 
 /**
- * Fixed bottom control so chapter map / choice log stay discoverable without moving
+ * Fixed bottom control so the day map / choice log stay discoverable without moving
  * the video or scenario text. Opens a sheet with the same FiveDayProgress + shortcuts.
  */
 export default function GameRunDock({
@@ -75,7 +75,7 @@ export default function GameRunDock({
 
         <div className={`game-run-dock-panel${open ? " is-open" : ""}`}>
           {open ? (
-            <div className="game-run-dock-panel-inner" id="game-run-dock-panel-content" role="dialog" aria-modal="true" aria-label="Run progress and chapters">
+            <div className="game-run-dock-panel-inner" id="game-run-dock-panel-content" role="dialog" aria-modal="true" aria-label="Run progress and days">
               <div className="game-run-dock-panel-head">
                 <h2 className="game-run-dock-panel-title">Your run</h2>
                 <button type="button" className="game-run-dock-close" onClick={close}>

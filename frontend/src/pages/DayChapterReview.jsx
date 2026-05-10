@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
-import { loadPersistedRun } from "../game/playerSessionPersist";
+import GameNavActions from "../components/GameNavActions";
+import { loadPersistedRun, RESTART_GAME_HREF } from "../game/playerSessionPersist";
 import { CHAPTER_COUNT, GAME_CHAPTERS } from "../game/gameStructure";
 
 function answersForChapter(answersByChapter, chapter) {
@@ -48,73 +49,34 @@ export default function DayChapterReview() {
         <p style={{ margin: "0 0 0.35rem", fontSize: "0.75rem", letterSpacing: "0.08em", color: "#71717a" }}>
           Day {day}
         </p>
-        <h1 style={{ margin: "0 0 0.5rem", fontSize: "1.35rem", fontWeight: 700 }}>{meta?.shortTitle ?? `Chapter ${day}`}</h1>
+        <h1 style={{ margin: "0 0 0.5rem", fontSize: "1.35rem", fontWeight: 700 }}>{meta?.shortTitle ?? `Day ${day}`}</h1>
         <p style={{ margin: 0, fontSize: "0.9rem", lineHeight: 1.55, color: "#a1a1aa", maxWidth: "48ch" }}>
-          Answers from your current saved run. Earlier chapters show everything logged so far; this day shows only the
-          questions you have already answered here.
+          Answers from your current saved run. Earlier days show everything logged so far; this day shows only what you
+          have already answered here.
         </p>
       </header>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", marginBottom: "2rem" }}>
-        <Link
-          to={`/game?day=${day}`}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            padding: "0.5rem 0.9rem",
-            borderRadius: "8px",
-            border: "1px solid #3f3f46",
-            background: "#141418",
-            color: "#93c5fd",
-            fontSize: "0.875rem",
-            fontWeight: 600,
-            textDecoration: "none",
-          }}
-        >
-          Play / continue this chapter →
-        </Link>
-        <Link
-          to="/game/run-log"
-          style={{
-            fontSize: "0.875rem",
-            fontWeight: 600,
-            color: "#a1a1aa",
-            textDecoration: "underline",
-            textUnderlineOffset: "3px",
-            alignSelf: "center",
-          }}
-        >
-          Full run log
-        </Link>
-        <Link
-          to="/chapters"
-          style={{
-            fontSize: "0.875rem",
-            fontWeight: 600,
-            color: "#a1a1aa",
-            textDecoration: "underline",
-            textUnderlineOffset: "3px",
-            alignSelf: "center",
-          }}
-        >
-          ← Chapters
-        </Link>
+      <div style={{ marginBottom: "2rem" }}>
+        <GameNavActions
+          continueHref={`/game?day=${day}`}
+          continueLabel={`Return to day ${day}`}
+        />
       </div>
 
       {!snapshot ? (
         <p style={{ color: "#a1a1aa", fontSize: "0.9375rem" }}>
           No saved run yet.{" "}
-          <Link to="/game?day=1" style={{ color: "#93c5fd" }}>
-            Start the game
+          <Link to={RESTART_GAME_HREF} style={{ color: "#93c5fd" }}>
+            Start a new run
           </Link>
           .
         </p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
           {day > 1 ? (
-            <section aria-labelledby="prior-chapters-heading">
+            <section aria-labelledby="prior-days-heading">
               <h2
-                id="prior-chapters-heading"
+                id="prior-days-heading"
                 style={{
                   margin: "0 0 0.75rem",
                   fontSize: "0.8125rem",
@@ -124,7 +86,7 @@ export default function DayChapterReview() {
                   color: "#fde68a",
                 }}
               >
-                Chapters you&apos;ve already started (days 1–{day - 1})
+                Earlier days (1–{day - 1})
               </h2>
               <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
                 {GAME_CHAPTERS.filter((c) => c.chapter < day).map((c) => {
@@ -144,7 +106,7 @@ export default function DayChapterReview() {
                       </h3>
                       {rows.length === 0 ? (
                         <p style={{ margin: "0.65rem 0 0", fontSize: "0.875rem", color: "#71717a" }}>
-                          No answers recorded for this chapter in this run.
+                          No answers recorded for this day in this run.
                         </p>
                       ) : (
                         <AnswerList rows={rows} />
@@ -168,7 +130,7 @@ export default function DayChapterReview() {
                 color: "#93c5fd",
               }}
             >
-              This chapter (day {day})
+              This day
             </h2>
             <div
               style={{
@@ -180,8 +142,7 @@ export default function DayChapterReview() {
             >
               {answersForChapter(answersByChapter, day).length === 0 ? (
                 <p style={{ margin: 0, fontSize: "0.9375rem", lineHeight: 1.55, color: "#a1a1aa" }}>
-                  No questions answered yet in this chapter. Play a beat in the game and come back — your choices will
-                  show up here.
+                  No answers yet for this day. Play a beat in the game and come back — your choices will show up here.
                 </p>
               ) : (
                 <AnswerList rows={answersForChapter(answersByChapter, day)} />

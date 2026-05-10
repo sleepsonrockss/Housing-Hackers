@@ -17,6 +17,7 @@ import { playChoiceStatSfx } from "../game/statChangeSfx";
 import { HOUSING_GLOSSARY } from "../game/housingGlossary";
 import { GlossaryRichText } from "../components/GlossaryRichText";
 import GameRunDock from "../components/GameRunDock";
+import GameNavActions from "../components/GameNavActions";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
@@ -271,11 +272,9 @@ export default function GameScenario() {
 
   if (!scenario) {
     return (
-      <div style={{ background: "#090909", color: "#fff", minHeight: "100vh", padding: 48 }}>
+      <div style={{ background: "#090909", color: "#fff", minHeight: "100vh", padding: 48, display: "flex", flexDirection: "column", gap: 20 }}>
         <p>Unknown scenario.</p>
-        <Link to="/chapters" style={{ color: "#93c5fd" }}>
-          ← Chapters
-        </Link>
+        <GameNavActions />
       </div>
     );
   }
@@ -313,8 +312,16 @@ export default function GameScenario() {
         <div id="scenario-heading" style={{ fontSize: "16px", fontWeight: 600 }}>
           {runComplete && scenario.chapter >= CHAPTER_COUNT ? "Done" : scenarioIndexLabel(scenario)}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
-          <div style={{ display: "flex", gap: "16px", fontSize: "12px", color: "#a1a1aa" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            gap: "10px",
+            maxWidth: "100%",
+          }}
+        >
+          <div style={{ display: "flex", gap: "16px", fontSize: "12px", color: "#a1a1aa", flexWrap: "wrap", justifyContent: "flex-end" }}>
             <span>
               Money <strong style={{ color: "#fafafa" }}>${stats.money}</strong>
             </span>
@@ -323,13 +330,7 @@ export default function GameScenario() {
               <span style={{ color: "#52525b", fontWeight: 400 }}> / 100</span>
             </span>
           </div>
-          <Link
-            to="/chapters"
-            style={{ fontSize: "12px", color: "#e4e4e7", textDecoration: "underline", textUnderlineOffset: "3px" }}
-            aria-label="Back to chapter list"
-          >
-            ← Chapters
-          </Link>
+          <GameNavActions omitContinue compact />
         </div>
       </header>
 
@@ -429,46 +430,21 @@ export default function GameScenario() {
                   ? "You ran out of money. The run ends when cash hits $0 or below."
                   : "Your stress meter hit the maximum (100). Higher numbers mean more strain all along — this is the limit."}
               </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "flex-start" }}>
-                <Link
-                  to="/game?day=1&reset=1"
-                  className="game-chapters-link"
-                  style={{
-                    fontSize: "15px",
-                    color: "#93c5fd",
-                    textUnderlineOffset: "4px",
-                    fontWeight: 600,
-                  }}
-                  aria-label="Start a new run with reset stats"
-                >
-                  Start a new run →
-                </Link>
-                <Link
-                  to="/chapters"
-                  className="game-chapters-link"
-                  style={{
-                    fontSize: "15px",
-                    color: "#a1a1aa",
-                    textUnderlineOffset: "4px",
-                    fontWeight: 600,
-                  }}
-                  aria-label="Return to full chapter list"
-                >
-                  All chapters
-                </Link>
+              <div style={{ marginTop: "4px" }}>
+                <GameNavActions omitContinue compact />
               </div>
             </section>
           ) : runComplete ? (
             <section className="game-scenario-question-block" aria-labelledby="chapter-end-heading">
               <h2 id="chapter-end-heading" className="game-scenario-title">
                 {scenario.chapter >= CHAPTER_COUNT
-                  ? "You finished all chapters"
-                  : `Chapter ${scenario.chapter} complete`}
+                  ? "You finished all five days"
+                  : `Day ${scenario.chapter} complete`}
               </h2>
               <p className="game-scenario-situation" style={{ marginBottom: "1.25rem" }}>
                 {scenario.chapter >= CHAPTER_COUNT
-                  ? "That is the end of the five-chapter run in this build. Use the chapter list to replay from any chapter."
-                  : "This chapter has no further beats in the current story file. Open the next chapter to keep going, or return to the list."}
+                  ? "That is the end of this build’s five-day run. Use the day list to replay from any day."
+                  : "This day has no further beats in the current story file. Open the next day to keep going, or return to the list."}
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "flex-start" }}>
                 {scenario.chapter < CHAPTER_COUNT ? (
@@ -481,9 +457,9 @@ export default function GameScenario() {
                       textUnderlineOffset: "4px",
                       fontWeight: 600,
                     }}
-                    aria-label={`Start chapter ${scenario.chapter + 1}`}
+                    aria-label={`Start day ${scenario.chapter + 1}`}
                   >
-                    Continue to chapter {scenario.chapter + 1} →
+                    Continue to day {scenario.chapter + 1} →
                   </Link>
                 ) : null}
                 <Link
@@ -495,10 +471,13 @@ export default function GameScenario() {
                     textUnderlineOffset: "4px",
                     fontWeight: 600,
                   }}
-                  aria-label="Return to full chapter list"
+                  aria-label="Return to day list"
                 >
-                  All chapters
+                  All days
                 </Link>
+              </div>
+              <div style={{ marginTop: "16px" }}>
+                <GameNavActions omitContinue compact />
               </div>
             </section>
           ) : (

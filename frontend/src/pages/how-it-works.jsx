@@ -1,4 +1,7 @@
 import { Link } from "react-router-dom";
+import GameNavActions from "../components/GameNavActions";
+import SiteAuthHeaderLinks from "../components/SiteAuthHeaderLinks";
+import { CHAPTER_COUNT, DISPLAY_SCENARIO_TOTAL } from "../game/gameStructure";
 import { getResumeGameHref } from "../game/playerSessionPersist";
 
 export default function HowItWorks() {
@@ -27,31 +30,34 @@ export default function HowItWorks() {
             justifyContent: "space-between",
           }}
         >
-          <Link to="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none", color: "inherit" }}>
-            <div
-              style={{
-                height: "20px",
-                width: "20px",
-                background: "#fff",
-                borderRadius: "4px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                <path d="M1 10L5.5 1 10 10H1z" fill="#090909" />
-              </svg>
-            </div>
-            <span style={{ fontSize: "13px", fontWeight: 600, letterSpacing: "-0.02em" }}>
-              TenantTales
-            </span>
-          </Link>
+          <div style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+            <Link to="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none", color: "inherit" }}>
+              <div
+                style={{
+                  height: "20px",
+                  width: "20px",
+                  background: "#fff",
+                  borderRadius: "4px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                  <path d="M1 10L5.5 1 10 10H1z" fill="#090909" />
+                </svg>
+              </div>
+              <span style={{ fontSize: "13px", fontWeight: 600, letterSpacing: "-0.02em" }}>
+                TenantTales
+              </span>
+            </Link>
+            <SiteAuthHeaderLinks />
+          </div>
 
           <nav style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             {[
               { label: "How it works", href: "/how-it-works", active: true },
-              { label: "Chapters", href: "/chapters" },
+              { label: "Days", href: "/chapters" },
               { label: "About", href: "/about" },
             ].map((l) => (
               <Link
@@ -71,18 +77,6 @@ export default function HowItWorks() {
           </nav>
 
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <Link
-              to="/login"
-              style={{
-                fontSize: "13px",
-                color: "#71717a",
-                padding: "6px 12px",
-                textDecoration: "none",
-                transition: "color 0.12s",
-              }}
-            >
-              Sign in
-            </Link>
             <Link
               to={playHref}
               style={{
@@ -115,7 +109,7 @@ export default function HowItWorks() {
             How TenantTales Works
           </h1>
           <p style={{ fontSize: "15px", color: "#52525b", lineHeight: 1.6 }}>
-            A chapter-based, decision-driven experience that teaches you tenant rights through real scenarios.
+            A five-day, decision-driven experience that teaches you tenant rights through real scenarios.
           </p>
         </div>
       </section>
@@ -129,28 +123,28 @@ export default function HowItWorks() {
             {[
               {
                 step: 1,
-                title: "Start Your Chapter",
-                desc: "You arrive at a new scenario. The stage is set: an inspection happening, a neighbor complaint, a lease renewal notice.",
+                title: "Start your day",
+                desc: "You arrive at a new scenario: an inspection, a neighbor issue, a lease notice, or another real renting moment.",
               },
               {
                 step: 2,
-                title: "Face the Decision",
-                desc: "Read the situation carefully. You're presented with 3–5 realistic choices, each with different outcomes.",
+                title: "Face the decision",
+                desc: "Read the situation and choose from several realistic options.",
               },
               {
                 step: 3,
-                title: "Make Your Choice",
-                desc: "Select an action. Your decision triggers immediate consequences—some good, some you'll regret.",
+                title: "Make your choice",
+                desc: "Select an action. The story reacts with immediate feedback you can learn from.",
               },
               {
                 step: 4,
-                title: "Learn & Progress",
-                desc: "See the outcome. Understand the legal or practical implications of your choice. Move forward.",
+                title: "Learn and progress",
+                desc: "See what changed and why it matters for tenants. Then move on to the next beat.",
               },
               {
                 step: 5,
-                title: "Complete the Chapter",
-                desc: "Finish all scenarios in the chapter to unlock the next one. Track your progress across five condensed chapters.",
+                title: "Complete the day",
+                desc: "Finish the day’s beats to unlock the next one. Your place in the run is saved automatically.",
               },
             ].map((item) => (
               <div key={item.step} style={{ display: "flex", gap: "24px" }}>
@@ -244,24 +238,22 @@ export default function HowItWorks() {
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "24px", marginBottom: "24px" }}>
             {[
-              { n: "10", l: "Chapters", d: "One for each major topic in tenant rights" },
-              { n: "48", l: "Scenarios", d: "Real-world situations you'll face as a tenant" },
-              { n: "120+", l: "Outcomes", d: "Different endings based on your choices" },
-            ].map(({ n, l, d }) => (
+              { n: String(CHAPTER_COUNT), l: "Days" },
+              { n: String(DISPLAY_SCENARIO_TOTAL), l: "Scenarios" },
+            ].map(({ n, l }) => (
               <div key={l} style={{ padding: "24px", borderRadius: "8px", border: "1px solid #27272a", background: "rgba(24,24,27,0.2)" }}>
                 <div style={{ fontSize: "24px", fontWeight: 600, marginBottom: "4px" }}>
                   {n}
                 </div>
-                <div style={{ fontSize: "13px", fontWeight: 500, color: "#fff", marginBottom: "8px" }}>
+                <div style={{ fontSize: "13px", fontWeight: 500, color: "#fff" }}>
                   {l}
                 </div>
-                <p style={{ fontSize: "12px", color: "#52525b" }}>{d}</p>
               </div>
             ))}
           </div>
 
           <p style={{ fontSize: "13px", color: "#52525b", lineHeight: 1.6 }}>
-            Your progress is saved automatically. Resume from where you left off anytime. Replay chapters to see different outcomes.
+            Your progress is saved automatically. Resume from where you left off anytime.
           </p>
         </div>
       </section>
@@ -296,6 +288,20 @@ export default function HowItWorks() {
             </svg>
           </Link>
         </div>
+      </section>
+
+      <section
+        style={{
+          borderTop: "1px solid #111",
+          padding: "28px 24px 36px",
+          maxWidth: "720px",
+          margin: "0 auto",
+        }}
+      >
+        <p style={{ margin: "0 0 14px", fontSize: "12px", fontWeight: 600, letterSpacing: "0.06em", color: "#71717a", textTransform: "uppercase" }}>
+          Navigate
+        </p>
+        <GameNavActions />
       </section>
 
       {/* FOOTER */}

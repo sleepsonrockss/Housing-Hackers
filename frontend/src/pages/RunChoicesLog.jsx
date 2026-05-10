@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { loadPersistedRun } from "../game/playerSessionPersist";
+import GameNavActions from "../components/GameNavActions";
+import { loadPersistedRun, RESTART_GAME_HREF } from "../game/playerSessionPersist";
 import { GAME_CHAPTERS } from "../game/gameStructure";
 
 function countChoices(answersByChapter) {
@@ -34,8 +35,8 @@ export default function RunChoicesLog() {
         </p>
         <h1 style={{ margin: "0 0 0.75rem", fontSize: "1.5rem", fontWeight: 700 }}>Your choices</h1>
         <p style={{ margin: 0, fontSize: "0.9375rem", lineHeight: 1.55, color: "#a1a1aa", maxWidth: "48ch" }}>
-          Every response you picked in this browser session, grouped by chapter. Open the game in another tab to
-          add more — refresh this page to update.
+          Every response you picked in this browser session, grouped by day. Open the game in another tab to add more —
+          refresh this page to update.
         </p>
         {stats ? (
           <p style={{ margin: "1rem 0 0", fontSize: "0.8125rem", color: "#52525b" }}>
@@ -46,46 +47,23 @@ export default function RunChoicesLog() {
         ) : null}
       </header>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", marginBottom: "2rem" }}>
-        <Link
-          to="/game"
-          style={{
-            fontSize: "0.875rem",
-            fontWeight: 600,
-            color: "#93c5fd",
-            textDecoration: "underline",
-            textUnderlineOffset: "3px",
-          }}
-        >
-          ← Back to game
-        </Link>
-        <Link
-          to="/chapters"
-          style={{
-            fontSize: "0.875rem",
-            fontWeight: 600,
-            color: "#a1a1aa",
-            textDecoration: "underline",
-            textUnderlineOffset: "3px",
-          }}
-        >
-          Chapter list
-        </Link>
+      <div style={{ marginBottom: "2rem" }}>
+        <GameNavActions />
       </div>
 
       {!snapshot ? (
         <p style={{ color: "#a1a1aa", fontSize: "0.9375rem" }}>
           No saved run in this session yet.{" "}
-          <Link to="/game?day=1" style={{ color: "#93c5fd" }}>
-            Start the game
+          <Link to={RESTART_GAME_HREF} style={{ color: "#93c5fd" }}>
+            Start a new run
           </Link>
           .
         </p>
       ) : total === 0 ? (
         <p style={{ color: "#a1a1aa", fontSize: "0.9375rem" }}>
           No choices logged yet. Play a beat and return here — or{" "}
-          <Link to="/game?day=1" style={{ color: "#93c5fd" }}>
-            open day 1
+          <Link to={RESTART_GAME_HREF} style={{ color: "#93c5fd" }}>
+            Start a new run
           </Link>
           .
         </p>

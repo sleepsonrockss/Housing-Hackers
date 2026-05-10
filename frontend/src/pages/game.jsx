@@ -10,7 +10,7 @@ export default function GamePage() {
       <p className="text-sm text-zinc-400">Game (placeholder)</p>
       <p className="text-lg">Day {day}</p>
       <Link href="/chapters" className="text-[13px] text-white underline">
-        Back to chapters
+        Back to days
       </Link>
     </div>
   );

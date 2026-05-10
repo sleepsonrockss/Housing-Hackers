@@ -2,9 +2,11 @@ import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   CHAPTER_COUNT,
-  ESTIMATED_SCENARIO_TOTAL,
+  DISPLAY_SCENARIO_TOTAL,
   getLandingChapterStrip,
 } from "../game/gameStructure";
+import GameNavActions from "../components/GameNavActions";
+import SiteAuthHeaderLinks from "../components/SiteAuthHeaderLinks";
 import { getResumeGameHref, loadPersistedRun } from "../game/playerSessionPersist";
 
 export default function LandingPage() {
@@ -126,36 +128,39 @@ export default function LandingPage() {
             justifyContent: "space-between",
           }}
         >
-          {/* Logo */}
-          <Link
-            to="/"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              textDecoration: "none",
-              color: "inherit",
-            }}
-          >
-            <div
+          {/* Logo + preview-only auth (no other app surfaces link here) */}
+          <div style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+            <Link
+              to="/"
               style={{
-                height: "20px",
-                width: "20px",
-                background: "#fff",
-                borderRadius: "4px",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
+                gap: "10px",
+                textDecoration: "none",
+                color: "inherit",
               }}
             >
-              <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                <path d="M1 10L5.5 1 10 10H1z" fill="#090909" />
-              </svg>
-            </div>
-            <span style={{ fontSize: "13px", fontWeight: 600, letterSpacing: "-0.02em" }}>
-              TenantTales
-            </span>
-          </Link>
+              <div
+                style={{
+                  height: "20px",
+                  width: "20px",
+                  background: "#fff",
+                  borderRadius: "4px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                  <path d="M1 10L5.5 1 10 10H1z" fill="#090909" />
+                </svg>
+              </div>
+              <span style={{ fontSize: "13px", fontWeight: 600, letterSpacing: "-0.02em" }}>
+                TenantTales
+              </span>
+            </Link>
+            <SiteAuthHeaderLinks />
+          </div>
 
           {/* Nav Links */}
           <nav style={{ display: "flex", alignItems: "center", gap: "20px" }}>
@@ -179,7 +184,7 @@ export default function LandingPage() {
                 textDecoration: "none",
               }}
             >
-              Chapters
+              Days
             </Link>
             <Link
               to="/about"
@@ -194,20 +199,7 @@ export default function LandingPage() {
             </Link>
           </nav>
 
-          {/* Auth Links */}
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-            <Link
-              to="/login"
-              style={{
-                fontSize: "13px",
-                color: "#71717a",
-                padding: "6px 14px",
-                borderRadius: "6px",
-                textDecoration: "none",
-              }}
-            >
-              Sign in
-            </Link>
             <Link
               to={primaryGameHref}
               style={{
@@ -294,7 +286,7 @@ export default function LandingPage() {
             }}
           >
             Face real scenarios. Make decisions. Learn tenant rights through an immersive,
-            chapter-based game.
+            five-day game.
           </p>
 
           {/* Progress Section */}
@@ -311,7 +303,7 @@ export default function LandingPage() {
                 Progress
               </span>
               <span style={{ fontSize: "11px", color: "#52525b", fontWeight: 500 }}>
-                {chaptersComplete} / {CHAPTER_COUNT} chapters
+                {chaptersComplete} / {CHAPTER_COUNT} days
               </span>
             </div>
 
@@ -352,7 +344,7 @@ export default function LandingPage() {
                 borderRadius: "6px",
                 textDecoration: "none",
               }}
-              aria-label={hasStarted ? `Continue game at chapter ${continueDay}` : "Start game from chapter 1"}
+              aria-label={hasStarted ? `Continue game at day ${continueDay}` : "Start game from day 1"}
             >
               {primaryCtaLabel}
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -378,6 +370,10 @@ export default function LandingPage() {
             </Link>
           </div>
 
+          <div style={{ marginTop: "20px", display: "flex", justifyContent: "center", width: "100%" }}>
+            <GameNavActions compact />
+          </div>
+
           {/* Stats */}
           <div
             style={{
@@ -388,25 +384,19 @@ export default function LandingPage() {
               maxWidth: "380px",
               display: "flex",
               justifyContent: "center",
-              gap: "48px",
+              gap: "56px",
             }}
           >
             <div style={{ textAlign: "center" }}>
               <div style={{ fontSize: "20px", fontWeight: 600 }}>{CHAPTER_COUNT}</div>
               <div style={{ fontSize: "11px", color: "#3f3f46", marginTop: "3px" }}>
-                Chapters
+                Days
               </div>
             </div>
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "20px", fontWeight: 600 }}>{ESTIMATED_SCENARIO_TOTAL}</div>
+              <div style={{ fontSize: "20px", fontWeight: 600 }}>{DISPLAY_SCENARIO_TOTAL}</div>
               <div style={{ fontSize: "11px", color: "#3f3f46", marginTop: "3px" }}>
                 Scenarios
-              </div>
-            </div>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "20px", fontWeight: 600 }}>120+</div>
-              <div style={{ fontSize: "11px", color: "#3f3f46", marginTop: "3px" }}>
-                Outcomes
               </div>
             </div>
           </div>
@@ -444,12 +434,12 @@ export default function LandingPage() {
                 fontWeight: 500,
               }}
             >
-              Chapters
+              Days
             </span>
             <span style={{ fontSize: "11px", color: "#27272a" }}>{chaptersComplete} done</span>
           </div>
 
-          {/* Chapter List */}
+          {/* Day list */}
           <div>
             {CHAPTERS.map((ch) => {
               const locked = ch.s === "locked";
@@ -535,18 +525,11 @@ export default function LandingPage() {
                           fontSize: "11px",
                           color: "#3f3f46",
                           lineHeight: 1.5,
-                          margin: "0 0 5px",
+                          margin: 0,
                         }}
                       >
                         {ch.desc}
                       </p>
-
-                      {/* Metadata */}
-                      <div style={{ display: "flex", gap: "8px", fontSize: "10px", color: "#27272a" }}>
-                        <span>Ch. {String(ch.day).padStart(2, "0")}</span>
-                        <span>·</span>
-                        <span>{ch.n} scenarios</span>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -564,7 +547,7 @@ export default function LandingPage() {
               lineHeight: 1.6,
             }}
           >
-            Complete each chapter to unlock the next. Progress saves automatically.
+            Complete each day to unlock the next. Progress saves automatically.
           </p>
         </aside>
       </div>

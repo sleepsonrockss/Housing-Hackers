@@ -42,7 +42,7 @@ export default function FiveDayProgress({
             Your five days
           </h2>
           <p className="five-day-progress-lead">
-            Open a day to see answers so far (this day and earlier chapters). Full log is a separate screen.
+            Open a day to see answers so far (this day and earlier days). Full log is a separate screen.
           </p>
         </div>
         <Link to="/game/run-log" className="five-day-progress-log-btn">

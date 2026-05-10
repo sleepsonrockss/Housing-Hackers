@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { CHAPTER_TAG_FILTERS, getChaptersPageItems } from "../game/gameStructure";
+import GameNavActions from "../components/GameNavActions";
+import SiteAuthHeaderLinks from "../components/SiteAuthHeaderLinks";
 import { getResumeGameHref } from "../game/playerSessionPersist";
 
 const CHAPTERS = getChaptersPageItems();
@@ -46,40 +48,43 @@ export default function Chapters() {
             justifyContent: "space-between",
           }}
         >
-          <Link
-            to="/"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              textDecoration: "none",
-              color: "inherit",
-            }}
-          >
-            <div
+          <div style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+            <Link
+              to="/"
               style={{
-                height: "20px",
-                width: "20px",
-                background: "#fff",
-                borderRadius: "4px",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
+                gap: "10px",
+                textDecoration: "none",
+                color: "inherit",
               }}
             >
-              <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                <path d="M1 10L5.5 1 10 10H1z" fill="#090909" />
-              </svg>
-            </div>
-            <span style={{ fontSize: "13px", fontWeight: 600, letterSpacing: "-0.02em" }}>
-              TenantTales
-            </span>
-          </Link>
+              <div
+                style={{
+                  height: "20px",
+                  width: "20px",
+                  background: "#fff",
+                  borderRadius: "4px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                  <path d="M1 10L5.5 1 10 10H1z" fill="#090909" />
+                </svg>
+              </div>
+              <span style={{ fontSize: "13px", fontWeight: 600, letterSpacing: "-0.02em" }}>
+                TenantTales
+              </span>
+            </Link>
+            <SiteAuthHeaderLinks />
+          </div>
 
           <nav style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             {[
               { label: "How it works", href: "/how-it-works" },
-              { label: "Chapters", href: "/chapters", active: true },
+              { label: "Days", href: "/chapters", active: true },
               { label: "About", href: "/about" },
             ].map((l) => (
               <Link
@@ -99,18 +104,6 @@ export default function Chapters() {
           </nav>
 
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <Link
-              to="/login"
-              style={{
-                fontSize: "13px",
-                color: "#71717a",
-                padding: "6px 12px",
-                textDecoration: "none",
-                transition: "color 0.12s",
-              }}
-            >
-              Sign in
-            </Link>
             <Link
               to={playHref}
               style={{
@@ -150,7 +143,7 @@ export default function Chapters() {
                 color: "#52525b",
               }}
             >
-              All Chapters
+              Five days
             </span>
             <span style={{ height: "1px", width: "32px", background: "#27272a" }}></span>
           </div>
@@ -165,8 +158,7 @@ export default function Chapters() {
             The Complete Journey
           </h1>
           <p style={{ fontSize: "15px", color: "#52525b", lineHeight: 1.6 }}>
-            Five chapters condense the full workbook arc. Progress through them in order — each chapter maps
-            several curriculum “days” into one playable beat.
+            Five days of tenant-rights scenarios. Play in order — your progress is saved as you go.
           </p>
         </div>
       </section>
@@ -198,7 +190,7 @@ export default function Chapters() {
         </div>
       </section>
 
-      {/* ── CHAPTERS GRID ── */}
+      {/* ── DAYS GRID ── */}
       <section style={{ padding: "64px 24px" }}>
         <div style={{ maxWidth: "900px", margin: "0 auto" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -230,7 +222,7 @@ export default function Chapters() {
                 >
                   <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
                     <span style={{ fontSize: "24px", fontWeight: 600 }}>
-                      Chapter {String(ch.day).padStart(2, "0")}
+                      Day {String(ch.day).padStart(2, "0")}
                     </span>
                     <span
                       style={{
@@ -264,28 +256,9 @@ export default function Chapters() {
                   </span>
                 </div>
 
-                {/* Title & desc */}
-                <p style={{ fontSize: "11px", color: "#52525b", marginBottom: "6px", letterSpacing: "0.04em" }}>
-                  Workbook days {ch.workbookDayFrom}–{ch.workbookDayTo} · {ch.subtitle}
-                </p>
-                <h3 style={{ fontSize: "18px", fontWeight: 600, marginBottom: "8px" }}>
+                <h3 style={{ fontSize: "18px", fontWeight: 600, marginBottom: "16px" }}>
                   {ch.title}
                 </h3>
-                <p style={{ fontSize: "13px", color: "#a1a1aa", marginBottom: "12px", fontStyle: "italic" }}>
-                  {ch.description}
-                </p>
-
-                {/* Details */}
-                <p
-                  style={{
-                    fontSize: "13px",
-                    color: "#71717a",
-                    lineHeight: 1.6,
-                    marginBottom: "16px",
-                  }}
-                >
-                  {ch.details}
-                </p>
 
                 {/* Meta */}
                 <div
@@ -297,7 +270,6 @@ export default function Chapters() {
                     color: "#52525b",
                   }}
                 >
-                  <span>{ch.scenarios} scenarios</span>
                   {ch.status !== "locked" && (
                     <Link
                       to={
@@ -323,7 +295,7 @@ export default function Chapters() {
           {filtered.length === 0 && (
             <div style={{ textAlign: "center", padding: "48px 0" }}>
               <p style={{ fontSize: "14px", color: "#52525b" }}>
-                No chapters match that filter.
+                No days match that filter.
               </p>
             </div>
           )}
@@ -340,11 +312,13 @@ export default function Chapters() {
           color: "#52525b",
         }}
       >
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
+          <GameNavActions />
+        </div>
         <p>© 2026 TenantTales. All rights reserved.</p>
-        <p style={{ marginTop: "12px" }}>
-          <Link to="/game?day=1&reset=1" style={{ color: "#71717a", textDecoration: "underline" }}>
-            Start a new run (reset money, stress, and story flags)
-          </Link>
+        <p style={{ marginTop: "10px", maxWidth: "40rem", marginLeft: "auto", marginRight: "auto", lineHeight: 1.5 }}>
+          <strong style={{ color: "#71717a" }}>Restart run</strong> clears this browser&apos;s saved money, stress,
+          flags, and answers — you always start at <span style={{ color: "#a1a1aa" }}>$1850</span> cash.
         </p>
       </footer>
     </div>
