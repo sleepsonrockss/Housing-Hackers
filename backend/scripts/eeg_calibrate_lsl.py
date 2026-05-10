@@ -36,16 +36,55 @@ DURATION = float(os.environ.get("EEG_LSL_DURATION_SEC", "10"))
 RESOLVE_SEC = float(os.environ.get("EEG_LSL_RESOLVE_SEC", "8"))
 
 
-def _find_inlet() -> pylsl.StreamInlet | None:
+def _find_inlet() -> tuple[pylsl.StreamInlet, float] | None:
     deadline = time.time() + RESOLVE_SEC
     while time.time() < deadline:
         for info in pylsl.resolve_streams(0.5):
             name = (info.name() or "").lower()
             typ = (info.type() or "").lower()
             if "eeg" in typ or "eeg" in name or "muse" in name:
-                return pylsl.StreamInlet(info, max_chunklen=2048)
+                fs = float(info.nominal_srate()) if info.nominal_srate() else 256.0
+                return pylsl.StreamInlet(info, max_chunklen=2048), fs
         time.sleep(0.1)
     return None
+
+
+def _band_metrics(sig: np.ndarray, fs: float) -> dict:
+    """Theta / alpha / beta power and a concentration proxy (beta vs alpha; educational only)."""
+    sig = np.asarray(sig, dtype=np.float64).ravel()
+    n = sig.size
+    if n < 32 or fs <= 0:
+        return {
+            "concentration": 50,
+            "beta_alpha_ratio": None,
+            "theta_band": None,
+            "alpha_band": None,
+            "beta_band": None,
+            "sample_rate_hz": round(fs, 2) if fs else None,
+        }
+    sig = sig - np.mean(sig)
+    w = np.hanning(n)
+    y = np.fft.rfft(sig * w)
+    p = np.abs(y) ** 2
+    freqs = np.fft.rfftfreq(n, 1.0 / fs)
+
+    def band_power(lo: float, hi: float) -> float:
+        m = (freqs >= lo) & (freqs < hi)
+        return float(np.sum(p[m]))
+
+    theta = band_power(4.0, 8.0)
+    alpha = band_power(8.0, 13.0)
+    beta = band_power(13.0, 30.0)
+    ratio = beta / (alpha + 1e-12)
+    concentration = int(np.clip(25 + 50 * np.tanh((ratio - 1.0) / 1.5), 0, 100))
+    return {
+        "concentration": concentration,
+        "beta_alpha_ratio": round(float(ratio), 4),
+        "theta_band": round(theta, 4),
+        "alpha_band": round(alpha, 4),
+        "beta_band": round(beta, 4),
+        "sample_rate_hz": round(fs, 2),
+    }
 
 
 def _stress_from_samples(samples: np.ndarray) -> tuple[int, dict]:
@@ -67,8 +106,8 @@ def _stress_from_samples(samples: np.ndarray) -> tuple[int, dict]:
 
 
 def main() -> int:
-    inlet = _find_inlet()
-    if inlet is None:
+    found = _find_inlet()
+    if found is None:
         print(
             json.dumps(
                 {
@@ -81,6 +120,7 @@ def main() -> int:
         )
         return 1
 
+    inlet, fs = found
     buf: list[list[float]] = []
     t0 = time.time()
     while time.time() - t0 < DURATION:
@@ -102,7 +142,9 @@ def main() -> int:
 
     arr = np.array(buf, dtype=np.float64)
     stress, meta = _stress_from_samples(arr)
-    out = {"stress": stress, "source": "lsl", **meta}
+    trace = np.mean(arr, axis=1) if arr.ndim == 2 else arr.ravel()
+    bands = _band_metrics(trace, fs)
+    out = {"stress": stress, "source": "lsl", **meta, **bands}
     print(json.dumps(out), flush=True)
     return 0
 

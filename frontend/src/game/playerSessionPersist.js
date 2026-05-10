@@ -5,6 +5,9 @@ const STORAGE_KEY = "housing-hackers-player-run-v1";
 /** One-shot initial stress (0–100) after Muse calibration; consumed when a `reset=1` game starts. */
 const INITIAL_STRESS_OVERRIDE_KEY = "housing-hackers-initial-stress-override-v1";
 
+/** Full `/api/eeg/calibrate` JSON for PDF report; consumed when `reset=1` game starts (with customized play). */
+const MUSE_REPORT_PENDING_KEY = "housing-hackers-muse-report-pending-v1";
+
 /**
  * Store calibrated starting stress before navigating to `/game?day=1&reset=1`.
  * @param {number} stress
@@ -37,6 +40,36 @@ export function peekPendingInitialStress() {
 }
 
 /** @returns {number | null} */
+/** @param {Record<string, unknown>} payload */
+export function setPendingMuseReportPayload(payload) {
+  if (typeof sessionStorage === "undefined") return;
+  if (!payload || typeof payload !== "object") return;
+  try {
+    sessionStorage.setItem(MUSE_REPORT_PENDING_KEY, JSON.stringify({ ...payload, capturedAt: new Date().toISOString() }));
+  } catch {
+    // ignore
+  }
+}
+
+/** @returns {Record<string, unknown> | null} */
+export function consumePendingMuseReportPayload() {
+  if (typeof sessionStorage === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(MUSE_REPORT_PENDING_KEY);
+    if (!raw) return null;
+    sessionStorage.removeItem(MUSE_REPORT_PENDING_KEY);
+    const data = JSON.parse(raw);
+    return data && typeof data === "object" ? data : null;
+  } catch {
+    try {
+      sessionStorage.removeItem(MUSE_REPORT_PENDING_KEY);
+    } catch {
+      // ignore
+    }
+    return null;
+  }
+}
+
 export function consumePendingInitialStress() {
   if (typeof sessionStorage === "undefined") return null;
   try {
@@ -86,7 +119,33 @@ function maxChapterFromAnswers(answersByChapter) {
   return m;
 }
 
-/** @returns {{ stats: object, flags: object, unlockedDay: number, answersByChapter: object, gameOverReason?: string | null } | null} */
+function normalizeStressTimeline(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((e) => e && typeof e.stress === "number" && Number.isFinite(e.stress))
+    .map((e, i) => ({
+      step: typeof e.step === "number" && Number.isFinite(e.step) ? e.step : i,
+      stress: Math.min(100, Math.max(0, Math.round(e.stress))),
+      beat: typeof e.beat === "string" ? e.beat : "",
+      label: typeof e.label === "string" ? e.label : "",
+      chapter: typeof e.chapter === "number" && Number.isFinite(e.chapter) ? e.chapter : null,
+    }));
+}
+
+function normalizeMuseCalibration(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const stress = typeof raw.stress === "number" && Number.isFinite(raw.stress) ? Math.round(raw.stress) : null;
+  const concentration =
+    typeof raw.concentration === "number" && Number.isFinite(raw.concentration) ? Math.round(raw.concentration) : null;
+  return {
+    ...raw,
+    stress,
+    concentration,
+    capturedAt: typeof raw.capturedAt === "string" ? raw.capturedAt : undefined,
+  };
+}
+
+/** @returns {{ stats: object, flags: object, unlockedDay: number, answersByChapter: object, gameOverReason?: string | null, museCalibration?: object | null, stressTimeline?: object[] } | null} */
 export function loadPersistedRun() {
   if (typeof sessionStorage === "undefined") return null;
   try {
@@ -109,6 +168,8 @@ export function loadPersistedRun() {
       unlockedDay,
       answersByChapter,
       gameOverReason,
+      museCalibration: data.museCalibration ? normalizeMuseCalibration(data.museCalibration) : null,
+      stressTimeline: normalizeStressTimeline(data.stressTimeline),
     };
   } catch {
     return null;
@@ -122,8 +183,18 @@ export function loadPersistedRun() {
  * @param {number} p.unlockedDay
  * @param {object} p.answersByChapter
  * @param {string | null | undefined} p.gameOverReason — `"money"` | `"stress"` when the run has ended
+ * @param {object | null | undefined} p.museCalibration — Muse / API snapshot for landlord PDF
+ * @param {object[] | undefined} p.stressTimeline — in-game stress after each logged choice
  */
-export function savePersistedRun({ stats, flags, unlockedDay, answersByChapter, gameOverReason }) {
+export function savePersistedRun({
+  stats,
+  flags,
+  unlockedDay,
+  answersByChapter,
+  gameOverReason,
+  museCalibration,
+  stressTimeline,
+}) {
   if (typeof sessionStorage === "undefined") return;
   try {
     sessionStorage.setItem(
@@ -134,6 +205,8 @@ export function savePersistedRun({ stats, flags, unlockedDay, answersByChapter, 
         unlockedDay: Math.min(5, Math.max(1, unlockedDay)),
         answersByChapter: answersByChapter && typeof answersByChapter === "object" ? answersByChapter : {},
         gameOverReason: gameOverReason === "money" || gameOverReason === "stress" ? gameOverReason : null,
+        museCalibration: museCalibration && typeof museCalibration === "object" ? museCalibration : null,
+        stressTimeline: normalizeStressTimeline(stressTimeline),
       })
     );
   } catch {

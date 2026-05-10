@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import GameNavActions from "../components/GameNavActions";
 import NavBackButton from "../components/NavBackButton";
 import SiteAuthHeaderLinks from "../components/SiteAuthHeaderLinks";
-import { setPendingInitialStress } from "../game/playerSessionPersist";
+import { setPendingInitialStress, setPendingMuseReportPayload } from "../game/playerSessionPersist";
 
 const CALIBRATION_SECONDS = 10;
 
@@ -19,6 +19,8 @@ export default function StressCalibration() {
   const [displaySec, setDisplaySec] = useState(CALIBRATION_SECONDS);
   const [countdownDone, setCountdownDone] = useState(false);
   const [stress, setStress] = useState(null);
+  /** Full API payload for PDF / session report. */
+  const [calibrationPayload, setCalibrationPayload] = useState(null);
   const [error, setError] = useState(null);
   const [fetching, setFetching] = useState(true);
   const abortRef = useRef(null);
@@ -43,6 +45,7 @@ export default function StressCalibration() {
         const s = typeof data.stress === "number" && Number.isFinite(data.stress) ? data.stress : null;
         if (s == null) throw new Error("Invalid stress from server");
         setStress(Math.min(100, Math.max(0, Math.round(s))));
+        setCalibrationPayload(data && typeof data === "object" ? { ...data } : null);
       })
       .catch((e) => {
         if (e.name === "AbortError") return;
@@ -75,8 +78,13 @@ export default function StressCalibration() {
   const handleContinue = () => {
     if (stress == null) return;
     setPendingInitialStress(stress);
-    // `state` survives React Strict Mode double-mount; sessionStorage alone is consumed on first effect pass.
-    navigate("/game?day=1&reset=1", { state: { initialStress: stress } });
+    if (calibrationPayload && typeof calibrationPayload === "object") {
+      setPendingMuseReportPayload(calibrationPayload);
+    }
+    // `state` survives React Strict Mode double-mount; sessionStorage consumed on first `reset=1` effect pass.
+    navigate("/game?day=1&reset=1", {
+      state: { initialStress: stress, museSnapshot: calibrationPayload },
+    });
   };
 
   return (

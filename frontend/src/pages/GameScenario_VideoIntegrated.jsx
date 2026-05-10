@@ -13,6 +13,7 @@ import {
 import {
   clearPersistedRun,
   consumePendingInitialStress,
+  consumePendingMuseReportPayload,
   loadPersistedRun,
   peekPendingInitialStress,
   savePersistedRun,
@@ -84,6 +85,12 @@ function readInitialStressFromLocation(location) {
   return Math.min(100, Math.max(0, Math.round(s)));
 }
 
+function readMuseSnapshotFromLocation(location) {
+  const m = location?.state?.museSnapshot;
+  if (!m || typeof m !== "object") return null;
+  return { ...m };
+}
+
 export default function GameScenario() {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
@@ -124,6 +131,16 @@ export default function GameScenario() {
     const saved = loadPersistedRun();
     return saved?.answersByChapter && typeof saved.answersByChapter === "object" ? { ...saved.answersByChapter } : {};
   });
+  const [museCalibration, setMuseCalibration] = useState(() => {
+    if (!shouldHydrateRunFromSession()) return null;
+    const saved = loadPersistedRun();
+    return saved?.museCalibration && typeof saved.museCalibration === "object" ? saved.museCalibration : null;
+  });
+  const [stressTimeline, setStressTimeline] = useState(() => {
+    if (!shouldHydrateRunFromSession()) return [];
+    const saved = loadPersistedRun();
+    return Array.isArray(saved?.stressTimeline) ? saved.stressTimeline : [];
+  });
   const [scenarioId, setScenarioId] = useState(() => getStartScenarioId(dayParam));
   /** While set, choice UI is locked and we auto-advance after a short delay (or money float). */
   const [pendingAdvance, setPendingAdvance] = useState(null);
@@ -140,6 +157,8 @@ export default function GameScenario() {
    * Ref: `undefined` = not computed yet; `null` = computed, use default stress; `number` = starting stress.
    */
   const resetCalibratedStressRef = useRef(undefined);
+  /** Strict Mode–safe Muse snapshot for `reset=1` (session `consume` only runs once). */
+  const resetMuseSnapshotRef = useRef(undefined);
 
   const scenario = getScenario(scenarioId);
 
@@ -147,6 +166,7 @@ export default function GameScenario() {
   useEffect(() => {
     if (searchParams.get("reset") !== "1") {
       resetCalibratedStressRef.current = undefined;
+      resetMuseSnapshotRef.current = undefined;
       return;
     }
     clearPersistedRun();
@@ -163,12 +183,33 @@ export default function GameScenario() {
       calibratedStress != null
         ? normalizeStats({ ...INITIAL_PLAYER_STATS, stress: calibratedStress })
         : { ...INITIAL_PLAYER_STATS };
+    let museNorm;
+    if (resetMuseSnapshotRef.current !== undefined) {
+      museNorm = resetMuseSnapshotRef.current;
+    } else {
+      const raw = readMuseSnapshotFromLocation(location) ?? consumePendingMuseReportPayload();
+      museNorm =
+        raw && typeof raw === "object"
+          ? { ...raw, capturedAt: typeof raw.capturedAt === "string" ? raw.capturedAt : new Date().toISOString() }
+          : null;
+      resetMuseSnapshotRef.current = museNorm;
+    }
+    setMuseCalibration(museNorm);
+    const dayFromUrl = Math.max(1, Math.min(CHAPTER_COUNT, parseInt(String(searchParams.get("day") || "1"), 10) || 1));
+    setStressTimeline([
+      {
+        step: 0,
+        beat: "—",
+        label: museNorm ? "Session start (after Muse baseline)" : "Session start",
+        stress: baseStats.stress,
+        chapter: dayFromUrl,
+      },
+    ]);
     setStats(baseStats);
     setFlags({});
     setUnlockedDay(1);
     setAnswersByChapter({});
     setGameOverReason(null);
-    const dayFromUrl = Math.max(1, Math.min(CHAPTER_COUNT, parseInt(String(searchParams.get("day") || "1"), 10) || 1));
     lastSyncedDayParamRef.current = null;
     setScenarioId(getStartScenarioId(String(dayFromUrl)));
     setPendingAdvance(null);
@@ -203,8 +244,16 @@ export default function GameScenario() {
   }, [dayParam, unlockedDay, gameOverReason, setSearchParams]);
 
   useEffect(() => {
-    savePersistedRun({ stats, flags, unlockedDay, answersByChapter, gameOverReason });
-  }, [stats, flags, unlockedDay, answersByChapter, gameOverReason]);
+    savePersistedRun({
+      stats,
+      flags,
+      unlockedDay,
+      answersByChapter,
+      gameOverReason,
+      museCalibration,
+      stressTimeline,
+    });
+  }, [stats, flags, unlockedDay, answersByChapter, gameOverReason, museCalibration, stressTimeline]);
 
   useEffect(() => {
     setVideoBroken(false);
@@ -304,6 +353,16 @@ export default function GameScenario() {
           { scenarioId: scenario.id, scenarioTitle: scenarioIndexLabel(scenario), choiceText: choiceLabel },
         ],
       }));
+      setStressTimeline((prev) => [
+        ...prev,
+        {
+          step: prev.length,
+          beat: scenarioIndexLabel(scenario),
+          label: choiceLabel.slice(0, 120),
+          stress: nextStats.stress,
+          chapter: scenario.chapter,
+        },
+      ]);
     }
     const md =
       typeof chosen.moneyDelta === "number" ? applyScaledMoneyDelta(chosen.moneyDelta) : null;
@@ -329,6 +388,19 @@ export default function GameScenario() {
   }
 
   const showRunDock = !gameOverReason;
+  const reportPdfAvailable =
+    (museCalibration && typeof museCalibration === "object") || (Array.isArray(stressTimeline) && stressTimeline.length >= 2);
+  const handleDownloadTenantReport = () => {
+    void import("../game/tenantReportPdf.js").then(({ downloadTenantMuseReport }) => {
+      downloadTenantMuseReport({
+        museCalibration,
+        stressTimeline,
+        finalStats: stats,
+        completedAllDays: !!(runComplete && scenario.chapter >= CHAPTER_COUNT),
+        gameOverReason,
+      });
+    });
+  };
 
   return (
     <div
@@ -483,6 +555,17 @@ export default function GameScenario() {
                   ? "You ran out of money. The run ends when cash hits $0 or below."
                   : "Your stress meter hit the maximum (100). Higher numbers mean more strain all along — this is the limit."}
               </p>
+              {reportPdfAvailable ? (
+                <div style={{ marginBottom: "14px" }}>
+                  <button
+                    type="button"
+                    className="game-pdf-report-btn"
+                    onClick={handleDownloadTenantReport}
+                  >
+                    Download PDF report (Muse + session)
+                  </button>
+                </div>
+              ) : null}
               <div style={{ marginTop: "4px" }}>
                 <GameNavActions omitContinue compact />
               </div>
@@ -528,6 +611,16 @@ export default function GameScenario() {
                 >
                   All days
                 </Link>
+                {reportPdfAvailable ? (
+                  <button
+                    type="button"
+                    className="game-pdf-report-btn"
+                    onClick={handleDownloadTenantReport}
+                    style={{ marginTop: "4px" }}
+                  >
+                    Download PDF report (Muse + session)
+                  </button>
+                ) : null}
               </div>
               <div style={{ marginTop: "16px" }}>
                 <GameNavActions
@@ -1033,6 +1126,23 @@ export default function GameScenario() {
           font-size: 0.9375rem;
           line-height: 1.65;
           color: #e4e4e7;
+        }
+        .game-pdf-report-btn {
+          display: inline-flex;
+          align-items: center;
+          font-size: 14px;
+          font-weight: 600;
+          color: #e4e4e7;
+          background: #27272a;
+          border: 1px solid #3f3f46;
+          border-radius: 8px;
+          padding: 10px 16px;
+          cursor: pointer;
+          font-family: inherit;
+        }
+        .game-pdf-report-btn:hover {
+          background: #3f3f46;
+          border-color: #52525b;
         }
         .game-chapters-link:focus-visible {
           outline: 3px solid #93c5fd;

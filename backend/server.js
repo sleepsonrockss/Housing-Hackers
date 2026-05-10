@@ -117,8 +117,19 @@ app.post("/api/eeg/calibrate", async (req, res) => {
         throw new Error("Bridge JSON must include a numeric stress field");
       }
       const stress = Math.min(100, Math.max(0, Math.round(result.stress)));
+      const conc =
+        typeof result.concentration === "number" && Number.isFinite(result.concentration)
+          ? Math.min(100, Math.max(0, Math.round(result.concentration)))
+          : null;
       return res.json({
         stress,
+        concentration: conc,
+        betaAlphaRatio: result.beta_alpha_ratio ?? result.betaAlphaRatio,
+        arousalProxy: result.arousal_proxy ?? result.arousalProxy,
+        thetaBand: result.theta_band ?? result.thetaBand,
+        alphaBand: result.alpha_band ?? result.alphaBand,
+        betaBand: result.beta_band ?? result.betaBand,
+        sampleRateHz: result.sample_rate_hz ?? result.sampleRateHz,
         source: result.source || "lsl",
         note:
           result.note ||
@@ -140,8 +151,11 @@ app.post("/api/eeg/calibrate", async (req, res) => {
   const waitMs = 10000;
   await new Promise((r) => setTimeout(r, waitMs));
   const stress = Math.round(28 + Math.random() * 52);
+  const concentration = Math.round(35 + Math.random() * 45);
   res.json({
     stress: Math.min(100, Math.max(0, stress)),
+    concentration: Math.min(100, Math.max(0, concentration)),
+    betaAlphaRatio: Number((0.8 + Math.random() * 0.8).toFixed(3)),
     source: "stub",
     note: "No EEG bridge configured (set USE_LSL_EEG=1 or EEG_CALIBRATE_SCRIPT). Random stress for development.",
   });
