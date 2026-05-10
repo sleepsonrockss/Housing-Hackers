@@ -103,17 +103,6 @@ Then visit:
 
 ## Additional Notes
 
-### If Using `next/link` Instead of `<a>` Tags
-
-For better Next.js performance, you can use Next.js's `Link` component:
-
-```jsx
-import Link from 'next/link';
-
-<Link href="/">Home</Link>
-<Link href="/how-it-works">How it Works</Link>
-```
-
 The components provided use standard `<a>` tags which also work fine with Next.js routing.
 
 ### API Integration Points
