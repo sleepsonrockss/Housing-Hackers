@@ -17,6 +17,7 @@ import { playChoiceStatSfx } from "../game/statChangeSfx";
 import { HOUSING_GLOSSARY } from "../game/housingGlossary";
 import { GlossaryRichText } from "../components/GlossaryRichText";
 import FiveDayProgress from "../components/FiveDayProgress";
+import { getVideoForScenario } from "../game/videoMap";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
@@ -200,7 +201,7 @@ export default function GameScenario() {
   const activeFileVideo = useMemo(() => {
     if (!scenario) return null;
     if (scenario.videoSrc) return scenario.videoSrc;
-    return null;
+    return getVideoForScenario(scenario.id) ?? null;
   }, [scenario]);
 
   useEffect(() => {
