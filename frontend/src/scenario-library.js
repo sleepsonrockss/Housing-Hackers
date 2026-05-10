@@ -1,7 +1,9 @@
 /**
  * SCENARIO LIBRARY - TenantTales Game
- * 10 Chapters × 5 Scenarios per Chapter = 50 Total Scenarios
- * 
+ *
+ * Player-facing arc: 5 chapters (see `src/game/gameStructure.js`) condensing many workbook “days”.
+ * This library may still be organized in legacy blocks — align counts with GAME_CHAPTERS as you author content.
+ *
  * Structure:
  * - Chapter (theme)
  * - Day (progression)

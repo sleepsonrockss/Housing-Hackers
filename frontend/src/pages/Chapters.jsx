@@ -1,109 +1,18 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { CHAPTER_TAG_FILTERS, getChaptersPageItems } from "../game/gameStructure";
 
-const CHAPTERS = [
-  {
-    day: 1,
-    title: "The First Viewing",
-    description: "You find a listing. Is it too good to be true?",
-    tag: "Foundations",
-    scenarios: 5,
-    status: "complete",
-    details: "Learn how to evaluate a rental listing, spot red flags, and ask the right questions during a viewing.",
-  },
-  {
-    day: 2,
-    title: "Signing the Lease",
-    description: "Clauses, deposits, and red flags in fine print.",
-    tag: "Legal",
-    scenarios: 6,
-    status: "complete",
-    details: "Understand lease agreements, identify problematic clauses, and know your rights before signing.",
-  },
-  {
-    day: 3,
-    title: "Moving In Day",
-    description: "Inventory checks, broken fixtures, your first dispute.",
-    tag: "Conflicts",
-    scenarios: 4,
-    status: "active",
-    details: "Master move-in procedures, document property condition, and handle initial landlord disputes.",
-  },
-  {
-    day: 4,
-    title: "The Noisy Neighbour",
-    description: "Conflict, mediation, and your legal options.",
-    tag: "Conflicts",
-    scenarios: 5,
-    status: "locked",
-    details: "Navigate neighbor disputes, understand tenant responsibilities, and know when to involve authorities.",
-  },
-  {
-    day: 5,
-    title: "Maintenance Request",
-    description: "Mould, leaks, and landlord obligations.",
-    tag: "Rights",
-    scenarios: 5,
-    status: "locked",
-    details: "Learn landlord maintenance obligations, proper request procedures, and what to do if repairs are ignored.",
-  },
-  {
-    day: 6,
-    title: "Rent Increase Notice",
-    description: "What's legal, negotiable, when to push back.",
-    tag: "Legal",
-    scenarios: 4,
-    status: "locked",
-    details: "Understand rent increase laws, permitted increases, and strategies for negotiating or challenging.",
-  },
-  {
-    day: 7,
-    title: "Subletting & Guests",
-    description: "The grey zones of occupancy and permission.",
-    tag: "Rights",
-    scenarios: 4,
-    status: "locked",
-    details: "Know the rules around subletting, long-term guests, and your rights to occupy the unit.",
-  },
-  {
-    day: 8,
-    title: "Notice to Vacate",
-    description: "Receiving a notice — your rights and timeline.",
-    tag: "Legal",
-    scenarios: 5,
-    status: "locked",
-    details: "Understand eviction notice types, legal timelines, and your options when facing eviction.",
-  },
-  {
-    day: 9,
-    title: "The Final Inspection",
-    description: "Wear and tear, damage claims, deposit recovery.",
-    tag: "Finances",
-    scenarios: 5,
-    status: "locked",
-    details: "Navigate move-out inspections, challenge unfair damage claims, and recover your security deposit.",
-  },
-  {
-    day: 10,
-    title: "The Reckoning",
-    description: "Tribunal, resolution, and the aftermath.",
-    tag: "Resolution",
-    scenarios: 5,
-    status: "locked",
-    details: "Prepare for and navigate the rental tribunal, present your case, and understand dispute resolution.",
-  },
-];
+const CHAPTERS = getChaptersPageItems();
 
 const TAG_COLORS = {
-  Foundations: { background: "#18181b", color: "#71717a" },
-  Legal: { background: "#0c1829", color: "#60a5fa" },
-  Conflicts: { background: "#1c0a0a", color: "#f87171" },
-  Rights: { background: "#1c1200", color: "#fbbf24" },
-  Finances: { background: "#021c10", color: "#34d399" },
-  Resolution: { background: "#110b1e", color: "#a78bfa" },
+  Money: { background: "#1c1200", color: "#fbbf24" },
+  Rental: { background: "#0c1829", color: "#60a5fa" },
+  People: { background: "#110b1e", color: "#a78bfa" },
+  Burnout: { background: "#1c0a0a", color: "#f87171" },
+  Future: { background: "#021c10", color: "#34d399" },
 };
 
-const TAG_FILTERS = ["All", "Foundations", "Legal", "Conflicts", "Rights", "Finances", "Resolution"];
+const TAG_FILTERS = CHAPTER_TAG_FILTERS;
 
 export default function Chapters() {
   const [filter, setFilter] = useState("All");
@@ -254,7 +163,8 @@ export default function Chapters() {
             The Complete Journey
           </h1>
           <p style={{ fontSize: "15px", color: "#52525b", lineHeight: 1.6 }}>
-            10 chapters covering every aspect of tenant rights. Progress through them in order.
+            Five chapters condense the full workbook arc. Progress through them in order — each chapter maps
+            several curriculum “days” into one playable beat.
           </p>
         </div>
       </section>
@@ -318,7 +228,7 @@ export default function Chapters() {
                 >
                   <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
                     <span style={{ fontSize: "24px", fontWeight: 600 }}>
-                      Day {String(ch.day).padStart(2, "0")}
+                      Chapter {String(ch.day).padStart(2, "0")}
                     </span>
                     <span
                       style={{
@@ -353,10 +263,13 @@ export default function Chapters() {
                 </div>
 
                 {/* Title & desc */}
+                <p style={{ fontSize: "11px", color: "#52525b", marginBottom: "6px", letterSpacing: "0.04em" }}>
+                  Workbook days {ch.workbookDayFrom}–{ch.workbookDayTo} · {ch.subtitle}
+                </p>
                 <h3 style={{ fontSize: "18px", fontWeight: 600, marginBottom: "8px" }}>
                   {ch.title}
                 </h3>
-                <p style={{ fontSize: "13px", color: "#52525b", marginBottom: "12px" }}>
+                <p style={{ fontSize: "13px", color: "#a1a1aa", marginBottom: "12px", fontStyle: "italic" }}>
                   {ch.description}
                 </p>
 
@@ -426,6 +339,11 @@ export default function Chapters() {
         }}
       >
         <p>© 2026 TenantTales. All rights reserved.</p>
+        <p style={{ marginTop: "12px" }}>
+          <Link to="/game?day=1&reset=1" style={{ color: "#71717a", textDecoration: "underline" }}>
+            Start a new run (reset money, stress, and story flags)
+          </Link>
+        </p>
       </footer>
     </div>
   );

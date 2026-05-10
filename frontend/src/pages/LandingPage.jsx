@@ -1,101 +1,26 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
+import {
+  CHAPTER_COUNT,
+  ESTIMATED_SCENARIO_TOTAL,
+  getLandingChapterStrip,
+} from "../game/gameStructure";
 
 export default function LandingPage() {
   // ─────────────────────────────────
   // Data
   // ─────────────────────────────────
-  const CHAPTERS = [
-    {
-      day: 1,
-      title: "The First Viewing",
-      desc: "You find a listing. Is it too good to be true?",
-      tag: "Foundations",
-      n: 5,
-      s: "complete",
-    },
-    {
-      day: 2,
-      title: "Signing the Lease",
-      desc: "Clauses, deposits, and red flags in fine print.",
-      tag: "Legal",
-      n: 6,
-      s: "complete",
-    },
-    {
-      day: 3,
-      title: "Moving In Day",
-      desc: "Inventory checks, broken fixtures, your first dispute.",
-      tag: "Conflicts",
-      n: 4,
-      s: "active",
-    },
-    {
-      day: 4,
-      title: "The Noisy Neighbour",
-      desc: "Conflict, mediation, and your legal options.",
-      tag: "Conflicts",
-      n: 5,
-      s: "locked",
-    },
-    {
-      day: 5,
-      title: "Maintenance Request",
-      desc: "Mould, leaks, and landlord obligations.",
-      tag: "Rights",
-      n: 5,
-      s: "locked",
-    },
-    {
-      day: 6,
-      title: "Rent Increase Notice",
-      desc: "What's legal, negotiable, when to push back.",
-      tag: "Legal",
-      n: 4,
-      s: "locked",
-    },
-    {
-      day: 7,
-      title: "Subletting & Guests",
-      desc: "The grey zones of occupancy and permission.",
-      tag: "Rights",
-      n: 4,
-      s: "locked",
-    },
-    {
-      day: 8,
-      title: "Notice to Vacate",
-      desc: "Receiving a notice — your rights and timeline.",
-      tag: "Legal",
-      n: 5,
-      s: "locked",
-    },
-    {
-      day: 9,
-      title: "The Final Inspection",
-      desc: "Wear and tear, damage claims, deposit recovery.",
-      tag: "Finances",
-      n: 5,
-      s: "locked",
-    },
-    {
-      day: 10,
-      title: "The Reckoning",
-      desc: "Tribunal, resolution, and the aftermath.",
-      tag: "Resolution",
-      n: 5,
-      s: "locked",
-    },
-  ];
+  const CHAPTERS = useMemo(() => getLandingChapterStrip(), []);
 
   const TAG_COLORS = {
-    Foundations: "background:#18181b;color:#71717a;",
-    Legal: "background:#0c1829;color:#60a5fa;",
-    Conflicts: "background:#1c0a0a;color:#f87171;",
-    Rights: "background:#1c1200;color:#fbbf24;",
-    Finances: "background:#021c10;color:#34d399;",
-    Resolution: "background:#110b1e;color:#a78bfa;",
+    Money: "background:#1c1200;color:#fbbf24;",
+    Rental: "background:#0c1829;color:#60a5fa;",
+    People: "background:#110b1e;color:#a78bfa;",
+    Burnout: "background:#1c0a0a;color:#f87171;",
+    Future: "background:#021c10;color:#34d399;",
   };
+
+  const chaptersComplete = CHAPTERS.filter((c) => c.s === "complete").length;
 
   const ICON = {
     complete: (
@@ -375,7 +300,7 @@ export default function LandingPage() {
                 Progress
               </span>
               <span style={{ fontSize: "11px", color: "#52525b", fontWeight: 500 }}>
-                2 / 10 chapters
+                {chaptersComplete} / {CHAPTER_COUNT} chapters
               </span>
             </div>
 
@@ -455,13 +380,13 @@ export default function LandingPage() {
             }}
           >
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "20px", fontWeight: 600 }}>10</div>
+              <div style={{ fontSize: "20px", fontWeight: 600 }}>{CHAPTER_COUNT}</div>
               <div style={{ fontSize: "11px", color: "#3f3f46", marginTop: "3px" }}>
                 Chapters
               </div>
             </div>
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "20px", fontWeight: 600 }}>48</div>
+              <div style={{ fontSize: "20px", fontWeight: 600 }}>{ESTIMATED_SCENARIO_TOTAL}</div>
               <div style={{ fontSize: "11px", color: "#3f3f46", marginTop: "3px" }}>
                 Scenarios
               </div>
@@ -509,7 +434,7 @@ export default function LandingPage() {
             >
               Chapters
             </span>
-            <span style={{ fontSize: "11px", color: "#27272a" }}>2 done</span>
+            <span style={{ fontSize: "11px", color: "#27272a" }}>{chaptersComplete} done</span>
           </div>
 
           {/* Chapter List */}
@@ -551,13 +476,13 @@ export default function LandingPage() {
                       }}
                     >
                       {ICON[ch.s]}
-                      {ch.day < 10 && (
+                      {ch.day < CHAPTER_COUNT && (
                         <div style={{ width: "1px", height: "22px", background: lineColor }}></div>
                       )}
                     </div>
 
                     {/* Content */}
-                    <div style={{ flex: 1, minWidth: 0, paddingBottom: ch.day < 10 ? "4px" : "0" }}>
+                    <div style={{ flex: 1, minWidth: 0, paddingBottom: ch.day < CHAPTER_COUNT ? "4px" : "0" }}>
                       {/* Title + Tag */}
                       <div
                         style={{
@@ -606,7 +531,7 @@ export default function LandingPage() {
 
                       {/* Metadata */}
                       <div style={{ display: "flex", gap: "8px", fontSize: "10px", color: "#27272a" }}>
-                        <span>Day {String(ch.day).padStart(2, "0")}</span>
+                        <span>Ch. {String(ch.day).padStart(2, "0")}</span>
                         <span>·</span>
                         <span>{ch.n} scenarios</span>
                       </div>

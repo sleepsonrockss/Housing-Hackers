@@ -1,102 +1,22 @@
 import { useState } from "react";
+import { CHAPTER_COUNT, getIndexChaptersDemo } from "../game/gameStructure";
 
 // ── Utility ──────────────────────────────────────────────
 const cn = (...classes) => classes.filter(Boolean).join(" ");
 
 // ── Data ─────────────────────────────────────────────────
-const CHAPTERS = [
-  {
-    day: 1,
-    title: "The First Viewing",
-    description: "You find a listing. Is it too good to be true?",
-    tag: "Foundations",
-    scenarios: 5,
-    status: "complete",
-  },
-  {
-    day: 2,
-    title: "Signing the Lease",
-    description: "Clauses, deposits, and red flags in fine print.",
-    tag: "Legal",
-    scenarios: 6,
-    status: "complete",
-  },
-  {
-    day: 3,
-    title: "Moving In Day",
-    description: "Inventory checks, broken fixtures, your first dispute.",
-    tag: "Conflicts",
-    scenarios: 4,
-    status: "active",
-  },
-  {
-    day: 4,
-    title: "The Noisy Neighbour",
-    description: "Conflict, mediation, and your legal options.",
-    tag: "Conflicts",
-    scenarios: 5,
-    status: "locked",
-  },
-  {
-    day: 5,
-    title: "Maintenance Request",
-    description: "Mould, leaks, and landlord obligations.",
-    tag: "Rights",
-    scenarios: 5,
-    status: "locked",
-  },
-  {
-    day: 6,
-    title: "Rent Increase Notice",
-    description: "What's legal, what's negotiable, when to push back.",
-    tag: "Legal",
-    scenarios: 4,
-    status: "locked",
-  },
-  {
-    day: 7,
-    title: "Subletting & Guests",
-    description: "The grey zones of occupancy and permission.",
-    tag: "Rights",
-    scenarios: 4,
-    status: "locked",
-  },
-  {
-    day: 8,
-    title: "Notice to Vacate",
-    description: "Receiving a notice — your rights and timeline.",
-    tag: "Legal",
-    scenarios: 5,
-    status: "locked",
-  },
-  {
-    day: 9,
-    title: "The Final Inspection",
-    description: "Wear and tear, damage claims, deposit recovery.",
-    tag: "Finances",
-    scenarios: 5,
-    status: "locked",
-  },
-  {
-    day: 10,
-    title: "The Reckoning",
-    description: "Tribunal, resolution, and the aftermath.",
-    tag: "Resolution",
-    scenarios: 5,
-    status: "locked",
-  },
-];
+const CHAPTERS = getIndexChaptersDemo();
 
 const TAG_COLORS = {
-  Foundations: "bg-zinc-800 text-zinc-400",
-  Legal: "bg-blue-950 text-blue-400",
-  Conflicts: "bg-red-950 text-red-400",
-  Rights: "bg-amber-950 text-amber-400",
-  Finances: "bg-emerald-950 text-emerald-400",
-  Resolution: "bg-purple-950 text-purple-400",
+  Money: "bg-amber-950 text-amber-400",
+  Rental: "bg-blue-950 text-blue-400",
+  People: "bg-purple-950 text-purple-400",
+  Burnout: "bg-red-950 text-red-400",
+  Future: "bg-emerald-950 text-emerald-400",
 };
 
-const PROGRESS = (2 / 10) * 100; // 2 complete out of 10
+const completeDemo = CHAPTERS.filter((c) => c.status === "complete").length;
+const PROGRESS = (completeDemo / CHAPTER_COUNT) * 100;
 
 // ── Sub-components ────────────────────────────────────────
 
@@ -140,7 +60,7 @@ function ChapterCard({ chapter, isSelected, onClick }) {
         <div className="flex flex-col items-center gap-1.5 pt-[2px]">
           <StatusIcon status={chapter.status} />
           {/* connector line */}
-          {chapter.day < 10 && (
+          {chapter.day < CHAPTER_COUNT && (
             <div
               className={cn(
                 "w-px h-5",
@@ -179,7 +99,7 @@ function ChapterCard({ chapter, isSelected, onClick }) {
           </p>
           <div className="mt-1.5 flex items-center gap-2">
             <span className="text-[10px] text-zinc-700">
-              Day {String(chapter.day).padStart(2, "0")}
+              Ch. {String(chapter.day).padStart(2, "0")}
             </span>
             <span className="text-zinc-800">·</span>
             <span className="text-[10px] text-zinc-700">{chapter.scenarios} scenarios</span>

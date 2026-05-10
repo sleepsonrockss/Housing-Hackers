@@ -148,7 +148,7 @@ export default function HowItWorks() {
               {
                 step: 5,
                 title: "Complete the Chapter",
-                desc: "Finish all scenarios in the chapter to unlock the next one. Track your progress across 10 chapters.",
+                desc: "Finish all scenarios in the chapter to unlock the next one. Track your progress across five condensed chapters.",
               },
             ].map((item) => (
               <div key={item.step} style={{ display: "flex", gap: "24px" }}>
