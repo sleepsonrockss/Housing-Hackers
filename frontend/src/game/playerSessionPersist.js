@@ -1,3 +1,5 @@
+import { CHAPTER_COUNT } from "./gameStructure";
+
 const STORAGE_KEY = "housing-hackers-player-run-v1";
 
 function isValidStats(s) {
@@ -91,4 +93,12 @@ export function clearPersistedRun() {
   } catch {
     // ignore
   }
+}
+
+/** `/game?day=N` — fresh run uses `reset=1` so money/stress always match defaults. */
+export function getResumeGameHref() {
+  const run = loadPersistedRun();
+  if (!run) return "/game?day=1&reset=1";
+  const d = Math.max(1, Math.min(CHAPTER_COUNT, Math.floor(run.unlockedDay) || 1));
+  return `/game?day=${d}`;
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { CHAPTER_TAG_FILTERS, getChaptersPageItems } from "../game/gameStructure";
+import { getResumeGameHref } from "../game/playerSessionPersist";
 
 const CHAPTERS = getChaptersPageItems();
 
@@ -16,6 +17,7 @@ const TAG_FILTERS = CHAPTER_TAG_FILTERS;
 
 export default function Chapters() {
   const [filter, setFilter] = useState("All");
+  const playHref = getResumeGameHref();
 
   const filtered =
     filter === "All" ? CHAPTERS : CHAPTERS.filter((ch) => ch.tag === filter);
@@ -110,7 +112,7 @@ export default function Chapters() {
               Sign in
             </Link>
             <Link
-              to="/signup"
+              to={playHref}
               style={{
                 fontSize: "13px",
                 fontWeight: 500,
@@ -121,7 +123,7 @@ export default function Chapters() {
                 textDecoration: "none",
               }}
             >
-              Get started
+              Play
             </Link>
           </div>
         </div>

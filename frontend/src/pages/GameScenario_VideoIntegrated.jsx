@@ -16,7 +16,7 @@ import { CHAPTER_COUNT } from "../game/gameStructure";
 import { playChoiceStatSfx } from "../game/statChangeSfx";
 import { HOUSING_GLOSSARY } from "../game/housingGlossary";
 import { GlossaryRichText } from "../components/GlossaryRichText";
-import FiveDayProgress from "../components/FiveDayProgress";
+import GameRunDock from "../components/GameRunDock";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
@@ -59,15 +59,27 @@ const ADVANCE_NO_SPEND_MS = 320;
 const ADVANCE_AFTER_SPEND_MS = 1850;
 const ADVANCE_REDUCED_MOTION_CAP_MS = 480;
 
+/** If URL has `reset=1`, do not hydrate from session on first paint (effect clears save next tick). */
+function shouldHydrateRunFromSession() {
+  if (typeof window === "undefined") return true;
+  try {
+    return new URLSearchParams(window.location.search).get("reset") !== "1";
+  } catch {
+    return true;
+  }
+}
+
 export default function GameScenario() {
   const [searchParams, setSearchParams] = useSearchParams();
   const dayParam = searchParams.get("day") || "1";
 
   const [stats, setStats] = useState(() => {
+    if (!shouldHydrateRunFromSession()) return { ...INITIAL_PLAYER_STATS };
     const saved = loadPersistedRun();
     return saved?.stats ? normalizeStats({ ...INITIAL_PLAYER_STATS, ...saved.stats }) : { ...INITIAL_PLAYER_STATS };
   });
   const [gameOverReason, setGameOverReason] = useState(() => {
+    if (!shouldHydrateRunFromSession()) return null;
     const saved = loadPersistedRun();
     if (!saved) return null;
     if (saved.gameOverReason === "money" || saved.gameOverReason === "stress") return saved.gameOverReason;
@@ -75,14 +87,17 @@ export default function GameScenario() {
     return getGameOverReason(s);
   });
   const [flags, setFlags] = useState(() => {
+    if (!shouldHydrateRunFromSession()) return {};
     const saved = loadPersistedRun();
     return saved?.flags ? { ...saved.flags } : {};
   });
   const [unlockedDay, setUnlockedDay] = useState(() => {
+    if (!shouldHydrateRunFromSession()) return 1;
     const saved = loadPersistedRun();
     return typeof saved?.unlockedDay === "number" ? saved.unlockedDay : 1;
   });
   const [answersByChapter, setAnswersByChapter] = useState(() => {
+    if (!shouldHydrateRunFromSession()) return {};
     const saved = loadPersistedRun();
     return saved?.answersByChapter && typeof saved.answersByChapter === "object" ? { ...saved.answersByChapter } : {};
   });
@@ -265,8 +280,19 @@ export default function GameScenario() {
     );
   }
 
+  const showRunDock = !gameOverReason;
+
   return (
-    <div style={{ background: "#090909", color: "#fff", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <div
+      style={{
+        background: "#090909",
+        color: "#fff",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        paddingBottom: showRunDock ? "max(52px, env(safe-area-inset-bottom, 0px))" : 0,
+      }}
+    >
       <header
         style={{
           position: "sticky",
@@ -405,7 +431,7 @@ export default function GameScenario() {
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "flex-start" }}>
                 <Link
-                  to="/game?reset=1"
+                  to="/game?day=1&reset=1"
                   className="game-chapters-link"
                   style={{
                     fontSize: "15px",
@@ -491,6 +517,7 @@ export default function GameScenario() {
                 ) : null}
               </section>
 
+              <div id="game-choice-anchor">
               <fieldset className="game-choice-fieldset" disabled={!!pendingAdvance}>
                 <legend className="game-choice-legend">Choose a response</legend>
                 <div className="game-choice-list" role="presentation">
@@ -528,18 +555,24 @@ export default function GameScenario() {
                   })}
                 </div>
               </fieldset>
+              </div>
             </>
           )}
         </div>
       </main>
 
-      <FiveDayProgress
-        unlockedDay={unlockedDay}
-        currentChapter={scenario.chapter}
-        runComplete={runComplete}
-        answersByChapter={answersByChapter}
-        navigationLocked={!!gameOverReason}
-      />
+      {showRunDock ? (
+        <GameRunDock
+          unlockedDay={unlockedDay}
+          currentChapter={scenario.chapter}
+          runComplete={runComplete}
+          answersByChapter={answersByChapter}
+          navigationLocked={!!gameOverReason}
+          choicesAvailable={
+            !runComplete && Array.isArray(scenario?.choices) && scenario.choices.length > 0
+          }
+        />
+      ) : null}
 
       {pendingAdvance &&
       ((pendingAdvance.moneyDelta != null && pendingAdvance.moneyDelta !== 0) ||

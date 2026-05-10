@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
+import { getResumeGameHref } from "../game/playerSessionPersist";
 
 export default function HowItWorks() {
+  const playHref = getResumeGameHref();
   return (
     <div style={{ background: "#090909", color: "#fff", minHeight: "100vh" }}>
       {/* NAV */}
@@ -82,7 +84,7 @@ export default function HowItWorks() {
               Sign in
             </Link>
             <Link
-              to="/signup"
+              to={playHref}
               style={{
                 fontSize: "13px",
                 fontWeight: 500,
@@ -93,7 +95,7 @@ export default function HowItWorks() {
                 textDecoration: "none",
               }}
             >
-              Get started
+              Play
             </Link>
           </div>
         </div>
@@ -274,7 +276,7 @@ export default function HowItWorks() {
             Begin your journey through the renting world. Learn by doing, not by reading.
           </p>
           <Link
-            to="/signup"
+            to={playHref}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -288,7 +290,7 @@ export default function HowItWorks() {
               textDecoration: "none",
             }}
           >
-            Start Now
+            Start now
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
