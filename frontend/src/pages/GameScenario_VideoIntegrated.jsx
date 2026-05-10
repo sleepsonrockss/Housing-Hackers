@@ -433,16 +433,8 @@ export default function GameScenario() {
         <div id="scenario-heading" style={{ fontSize: "16px", fontWeight: 600 }}>
           {runComplete && scenario.chapter >= CHAPTER_COUNT ? "Done" : scenarioIndexLabel(scenario)}
         </div>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-end",
-            gap: "10px",
-            maxWidth: "100%",
-          }}
-        >
-          <div style={{ display: "flex", gap: "16px", fontSize: "12px", color: "#a1a1aa", flexWrap: "wrap", justifyContent: "flex-end" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "16px", fontSize: "12px", color: "#a1a1aa" }}>
             <span>
               Money <strong style={{ color: "#fafafa" }}>${stats.money}</strong>
             </span>
@@ -451,12 +443,13 @@ export default function GameScenario() {
               <span style={{ color: "#52525b", fontWeight: 400 }}> / 100</span>
             </span>
           </div>
-          <GameNavActions
-            omitContinue
-            compact
-            omitDays={showRunDock}
-            omitChoiceLog={showRunDock}
-          />
+          <Link
+            to="/chapters"
+            style={{ fontSize: "12px", color: "#e4e4e7", textDecoration: "underline", textUnderlineOffset: "3px" }}
+            aria-label="Back to chapter list"
+          >
+            ← Chapters
+          </Link>
         </div>
       </header>
 

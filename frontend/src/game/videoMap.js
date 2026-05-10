@@ -13,6 +13,7 @@ export const VIDEO_MAP = {
   "c2-q2": "/videos/Q2.2.mp4",
   "c2-q3": "/videos/Q2.3.mp4",
   "c2-q4": "/videos/Q2.4.mp4",
+  "c2-q5": "/videos/Q2.5.mp4",
 
   "c3-q1": "/videos/Q3.1.mp4",
   "c3-q2": "/videos/Q3.2.mp4",
