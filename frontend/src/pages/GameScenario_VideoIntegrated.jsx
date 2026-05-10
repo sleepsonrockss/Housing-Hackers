@@ -434,14 +434,37 @@ export default function GameScenario() {
           {runComplete && scenario.chapter >= CHAPTER_COUNT ? "Done" : scenarioIndexLabel(scenario)}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
-          <div style={{ display: "flex", gap: "16px", fontSize: "12px", color: "#a1a1aa" }}>
-            <span>
-              Money <strong style={{ color: "#fafafa" }}>${stats.money}</strong>
-            </span>
-            <span>
-              Stress <strong style={{ color: "#fafafa" }}>{stats.stress}</strong>
-              <span style={{ color: "#52525b", fontWeight: 400 }}> / 100</span>
-            </span>
+          <div style={{ display: "flex", flexDirection: "row", gap: "16px", alignItems: "center" }}>
+            {/* Money bar — green, drains as money decreases from $1850 */}
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "11px", color: "#a1a1aa" }}>
+              <span style={{ whiteSpace: "nowrap" }}>💵 ${stats.money}</span>
+              <div style={{ width: "80px", height: "8px", borderRadius: "4px", background: "#27272a", overflow: "hidden" }}>
+                <div
+                  style={{
+                    height: "100%",
+                    borderRadius: "4px",
+                    background: "#22c55e",
+                    width: `${Math.min(100, Math.max(0, (stats.money / 1850) * 100))}%`,
+                    transition: "width 0.5s ease",
+                  }}
+                />
+              </div>
+            </div>
+            {/* Stress bar — red, fills as stress increases 0–100 */}
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "11px", color: "#a1a1aa" }}>
+              <span style={{ whiteSpace: "nowrap" }}>🧠 {stats.stress}</span>
+              <div style={{ width: "80px", height: "8px", borderRadius: "4px", background: "#27272a", overflow: "hidden" }}>
+                <div
+                  style={{
+                    height: "100%",
+                    borderRadius: "4px",
+                    background: "#ef4444",
+                    width: `${Math.min(100, Math.max(0, stats.stress))}%`,
+                    transition: "width 0.5s ease",
+                  }}
+                />
+              </div>
+            </div>
           </div>
           <Link
             to="/chapters"
