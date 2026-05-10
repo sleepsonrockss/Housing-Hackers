@@ -11,12 +11,12 @@ export const CHAPTER_1_SCENARIOS = {
     chapter: 1,
     title: "1.1",
     mood: "uncertain",
-    situation: `It's your first week in your own place. Income support and rent already cleared — you have about {{balance}} left for the rest of the month. Your phone buzzes — a "limited time sale" from a store you love. It's a hoodie you've been wanting for {{loss:28}}. You think: I deserve something nice. This place feels so empty.`,
+    situation: `It's your first week in your own place. Income support and rent already cleared — you have about {{balance}} left for the rest of the month. Your phone buzzes — a "limited time sale" from a store you love. It's a hoodie you've been wanting for {{loss:13}}. You think: I deserve something nice. This place feels so empty.`,
     choices: [
       {
         id: 1,
-        text: "Buy it ({{loss:28}}) — you've been through a lot and you deserve it.",
-        moneyDelta: -28,
+        text: "Buy it ({{loss:13}}) — you've been through a lot and you deserve it.",
+        moneyDelta: -13,
         stressDelta: 8,
         flagsSet: ["splurged_hoodie_c1"],
         consequence: "negative",

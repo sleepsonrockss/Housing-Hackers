@@ -11,12 +11,14 @@ import SignUp from "../pages/signup";
 import GameScenario from "../pages/GameScenario_VideoIntegrated";
 import RunChoicesLog from "../pages/RunChoicesLog";
 import DayChapterReview from "../pages/DayChapterReview";
+import StressCalibration from "../pages/StressCalibration";
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/calibrate-stress" element={<StressCalibration />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/chapters" element={<Chapters />} />
         <Route path="/about" element={<About />} />

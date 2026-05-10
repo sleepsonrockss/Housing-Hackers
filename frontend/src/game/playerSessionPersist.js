@@ -2,6 +2,61 @@ import { CHAPTER_COUNT } from "./gameStructure";
 
 const STORAGE_KEY = "housing-hackers-player-run-v1";
 
+/** One-shot initial stress (0–100) after Muse calibration; consumed when a `reset=1` game starts. */
+const INITIAL_STRESS_OVERRIDE_KEY = "housing-hackers-initial-stress-override-v1";
+
+/**
+ * Store calibrated starting stress before navigating to `/game?day=1&reset=1`.
+ * @param {number} stress
+ */
+export function setPendingInitialStress(stress) {
+  if (typeof sessionStorage === "undefined") return;
+  const n = typeof stress === "number" && Number.isFinite(stress) ? Math.round(stress) : NaN;
+  if (!Number.isFinite(n)) return;
+  const clamped = Math.min(100, Math.max(0, n));
+  try {
+    sessionStorage.setItem(INITIAL_STRESS_OVERRIDE_KEY, JSON.stringify({ stress: clamped }));
+  } catch {
+    // ignore
+  }
+}
+
+/** Read calibrated stress without removing (e.g. initial render before effect consumes). */
+export function peekPendingInitialStress() {
+  if (typeof sessionStorage === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(INITIAL_STRESS_OVERRIDE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    const n = typeof data?.stress === "number" && Number.isFinite(data.stress) ? Math.round(data.stress) : NaN;
+    if (!Number.isFinite(n)) return null;
+    return Math.min(100, Math.max(0, n));
+  } catch {
+    return null;
+  }
+}
+
+/** @returns {number | null} */
+export function consumePendingInitialStress() {
+  if (typeof sessionStorage === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(INITIAL_STRESS_OVERRIDE_KEY);
+    if (!raw) return null;
+    sessionStorage.removeItem(INITIAL_STRESS_OVERRIDE_KEY);
+    const data = JSON.parse(raw);
+    const n = typeof data?.stress === "number" && Number.isFinite(data.stress) ? Math.round(data.stress) : NaN;
+    if (!Number.isFinite(n)) return null;
+    return Math.min(100, Math.max(0, n));
+  } catch {
+    try {
+      sessionStorage.removeItem(INITIAL_STRESS_OVERRIDE_KEY);
+    } catch {
+      // ignore
+    }
+    return null;
+  }
+}
+
 function isValidStats(s) {
   return s && typeof s.money === "number" && typeof s.stress === "number";
 }
@@ -97,6 +152,24 @@ export function clearPersistedRun() {
 
 /** New run: resets money ($1850), stress, flags, answers, and chapter progress in this browser. */
 export const RESTART_GAME_HREF = "/game?day=1&reset=1";
+
+/**
+ * True when the saved run has real progress (not merely auto-saved initial stats before any choice).
+ * Used so landing CTAs say "Play" until the player has actually moved forward.
+ * @param {ReturnType<typeof loadPersistedRun>} run
+ */
+export function hasRunProgress(run) {
+  if (!run) return false;
+  if (run.gameOverReason === "money" || run.gameOverReason === "stress") return true;
+  if (typeof run.unlockedDay === "number" && Number.isFinite(run.unlockedDay) && run.unlockedDay > 1) return true;
+  const abc = run.answersByChapter;
+  if (abc && typeof abc === "object") {
+    for (const arr of Object.values(abc)) {
+      if (Array.isArray(arr) && arr.length > 0) return true;
+    }
+  }
+  return false;
+}
 
 /** `/game?day=N` — fresh run uses `reset=1` so money/stress always match defaults. */
 export function getResumeGameHref() {

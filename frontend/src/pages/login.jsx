@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import GameNavActions from "../components/GameNavActions";
+import NavBackButton from "../components/NavBackButton";
 import SiteAuthHeaderLinks from "../components/SiteAuthHeaderLinks";
 
 export default function SignIn() {
@@ -19,7 +20,8 @@ export default function SignIn() {
     <div className="min-h-screen bg-[#090909] text-white font-sans antialiased flex flex-col">
       {/* NAV */}
       <header className="sticky top-0 z-50 border-b border-zinc-900 bg-[#090909]/80 backdrop-blur-md">
-        <div className="max-w-[1280px] mx-auto px-6 h-14 flex items-center">
+        <div className="max-w-[1280px] mx-auto px-6 h-14 flex items-center gap-4">
+          <NavBackButton fallback="/" compact style={{ color: "#71717a", fontSize: "12px" }} />
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2.5 no-underline text-inherit">
               <div className="h-5 w-5 rounded bg-white flex items-center justify-center">
@@ -134,7 +136,7 @@ export default function SignIn() {
       </main>
 
       <div className="max-w-lg mx-auto px-6 pb-4 flex justify-center border-t border-zinc-900 pt-6">
-        <GameNavActions compact />
+        <GameNavActions compact showBack backFallback="/" />
       </div>
 
       {/* FOOTER */}

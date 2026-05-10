@@ -7,6 +7,7 @@ import axios from "axios";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { spawn } from "child_process";
 
 dotenv.config();
 
@@ -27,6 +28,124 @@ const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
 // In-memory stores
 const cache = new Map();    // text generation cache
 const videoJobs = new Map(); // jobId → { status, videoUrl, error }
+
+/**
+ * Path to a Python (or any) script that prints one JSON line to stdout: {"stress":0-100,...}
+ * Example: EEG_CALIBRATE_SCRIPT=./scripts/eeg_calibrate_lsl.py
+ * If USE_LSL_EEG=1 and scripts/eeg_calibrate_lsl.py exists, that path is used when unset.
+ */
+function resolveEegCalibrateScriptPath() {
+  const explicit = process.env.EEG_CALIBRATE_SCRIPT?.trim();
+  if (explicit) {
+    return path.isAbsolute(explicit) ? explicit : path.resolve(process.cwd(), explicit);
+  }
+  const useDefault =
+    process.env.USE_LSL_EEG === "1" ||
+    String(process.env.USE_LSL_EEG || "").toLowerCase() === "true";
+  if (!useDefault) return null;
+  const def = path.join(__dirname, "scripts", "eeg_calibrate_lsl.py");
+  return fs.existsSync(def) ? def : null;
+}
+
+function runEegCalibrateBridge(scriptPath) {
+  const python = process.env.EEG_CALIBRATE_PYTHON?.trim() || "python3";
+  return new Promise((resolve, reject) => {
+    const proc = spawn(python, [scriptPath], {
+      env: {
+        ...process.env,
+        EEG_LSL_DURATION_SEC: process.env.EEG_LSL_DURATION_SEC || "10",
+        EEG_LSL_RESOLVE_SEC: process.env.EEG_LSL_RESOLVE_SEC || "8",
+      },
+      cwd: path.dirname(scriptPath),
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    proc.stdout.setEncoding("utf8");
+    proc.stderr.setEncoding("utf8");
+    proc.stdout.on("data", (d) => {
+      stdout += d;
+    });
+    proc.stderr.on("data", (d) => {
+      stderr += d;
+    });
+    proc.on("error", (err) => reject(err));
+    proc.on("close", (code) => {
+      if (code !== 0) {
+        const tail = stderr.trim().split("\n").filter(Boolean).pop() || "";
+        let msg = stderr.trim() || `Bridge process exited with code ${code}`;
+        try {
+          const j = JSON.parse(tail);
+          if (j.message) msg = j.message;
+          if (j.hint) msg = `${msg} (${j.hint})`;
+        } catch {
+          /* keep msg */
+        }
+        reject(new Error(msg));
+        return;
+      }
+      const line = stdout
+        .trim()
+        .split("\n")
+        .filter(Boolean)
+        .pop();
+      if (!line) {
+        reject(new Error("Empty output from EEG bridge (expected one JSON line on stdout)"));
+        return;
+      }
+      try {
+        resolve(JSON.parse(line));
+      } catch {
+        reject(new Error(`Invalid JSON from EEG bridge: ${line.slice(0, 160)}`));
+      }
+    });
+  });
+}
+
+/**
+ * Muse / EEG calibration: optional LSL Python bridge, else 10s stub with random stress.
+ * Real data: run muselsl stream, pip install -r requirements-eeg.txt, set USE_LSL_EEG=1
+ * or EEG_CALIBRATE_SCRIPT to this repo's scripts/eeg_calibrate_lsl.py or your jss.py wrapper.
+ */
+app.post("/api/eeg/calibrate", async (req, res) => {
+  const scriptPath = resolveEegCalibrateScriptPath();
+
+  if (scriptPath) {
+    try {
+      const result = await runEegCalibrateBridge(scriptPath);
+      if (typeof result.stress !== "number" || !Number.isFinite(result.stress)) {
+        throw new Error("Bridge JSON must include a numeric stress field");
+      }
+      const stress = Math.min(100, Math.max(0, Math.round(result.stress)));
+      return res.json({
+        stress,
+        source: result.source || "lsl",
+        note:
+          result.note ||
+          "Calibrated from local LSL EEG (tune mapping in scripts/eeg_calibrate_lsl.py).",
+        samples: result.samples,
+        channels: result.channels,
+      });
+    } catch (err) {
+      console.error("[EEG calibrate]", err.message || err);
+      return res.status(503).json({
+        error: "eeg_bridge_failed",
+        message: err.message || String(err),
+        hint:
+          "Run muselsl stream, install pylsl (requirements-eeg.txt), and ensure EEG_CALIBRATE_SCRIPT or USE_LSL_EEG=1. You can point EEG_CALIBRATE_SCRIPT at a thin wrapper around jss.py that prints {\"stress\":...} to stdout.",
+      });
+    }
+  }
+
+  const waitMs = 10000;
+  await new Promise((r) => setTimeout(r, waitMs));
+  const stress = Math.round(28 + Math.random() * 52);
+  res.json({
+    stress: Math.min(100, Math.max(0, stress)),
+    source: "stub",
+    note: "No EEG bridge configured (set USE_LSL_EEG=1 or EEG_CALIBRATE_SCRIPT). Random stress for development.",
+  });
+});
 
 // ============================================
 // SCENARIO LIBRARY
@@ -740,7 +859,7 @@ app.use((err, req, res, next) => {
 // ============================================
 // START SERVER
 // ============================================
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`✅ TenantTales API running on http://localhost:${PORT}`);
   console.log(`📡 Video generation endpoints ready`);

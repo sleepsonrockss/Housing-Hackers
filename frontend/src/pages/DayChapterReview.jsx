@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import GameNavActions from "../components/GameNavActions";
+import NavBackButton from "../components/NavBackButton";
 import { loadPersistedRun, RESTART_GAME_HREF } from "../game/playerSessionPersist";
 import { CHAPTER_COUNT, GAME_CHAPTERS } from "../game/gameStructure";
 
@@ -46,6 +47,9 @@ export default function DayChapterReview() {
       }}
     >
       <header style={{ marginBottom: "1.5rem" }}>
+        <div style={{ marginBottom: "0.65rem" }}>
+          <NavBackButton fallback="/chapters" label="Back" />
+        </div>
         <p style={{ margin: "0 0 0.35rem", fontSize: "0.75rem", letterSpacing: "0.08em", color: "#71717a" }}>
           Day {day}
         </p>
@@ -58,6 +62,8 @@ export default function DayChapterReview() {
 
       <div style={{ marginBottom: "2rem" }}>
         <GameNavActions
+          showBack
+          backFallback="/chapters"
           continueHref={`/game?day=${day}`}
           continueLabel={`Return to day ${day}`}
         />

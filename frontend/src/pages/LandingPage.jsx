@@ -7,7 +7,7 @@ import {
 } from "../game/gameStructure";
 import GameNavActions from "../components/GameNavActions";
 import SiteAuthHeaderLinks from "../components/SiteAuthHeaderLinks";
-import { getResumeGameHref, loadPersistedRun } from "../game/playerSessionPersist";
+import { getResumeGameHref, hasRunProgress, loadPersistedRun } from "../game/playerSessionPersist";
 
 export default function LandingPage() {
   // ─────────────────────────────────
@@ -16,14 +16,11 @@ export default function LandingPage() {
   const CHAPTERS = useMemo(() => getLandingChapterStrip(), []);
   /** Re-read on each mount (e.g. return from `/game`) so CTA matches session. */
   const persistedRun = useMemo(() => loadPersistedRun(), []);
-  const hasStarted = persistedRun != null;
-  const continueDay = hasStarted
+  const canContinue = useMemo(() => hasRunProgress(persistedRun), [persistedRun]);
+  const continueDay = persistedRun
     ? Math.max(1, Math.min(CHAPTER_COUNT, Math.floor(persistedRun.unlockedDay) || 1))
     : 1;
   const primaryGameHref = useMemo(() => getResumeGameHref(), []);
-  const primaryCtaLabel = hasStarted
-    ? `Continue — Day ${String(continueDay).padStart(2, "0")}`
-    : "Start";
 
   const TAG_COLORS = {
     Money: "background:#1c1200;color:#fbbf24;",
@@ -328,36 +325,82 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* CTA Buttons */}
-          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-            <Link
-              to={primaryGameHref}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                background: "#fff",
-                color: "#09090b",
-                fontSize: "13px",
-                fontWeight: 600,
-                padding: "10px 20px",
-                borderRadius: "6px",
-                textDecoration: "none",
-              }}
-              aria-label={hasStarted ? `Continue game at day ${continueDay}` : "Start game from day 1"}
-            >
-              {primaryCtaLabel}
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path
-                  d="M3 7h8M7 3l4 4-4 4"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </Link>
-
+          {/* CTA: regular (default stress) vs customized (Muse calibration) */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "12px",
+              width: "100%",
+              maxWidth: "380px",
+            }}
+          >
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: "10px" }}>
+              <Link
+                to={primaryGameHref}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  background: "#fff",
+                  color: "#09090b",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  padding: "10px 18px",
+                  borderRadius: "6px",
+                  textDecoration: "none",
+                }}
+                aria-label={
+                  canContinue
+                    ? `Continue game at day ${continueDay} with default starting stress`
+                    : "Start game from day 1 with default starting stress (50)"
+                }
+              >
+                Play (Regular)
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M3 7h8M7 3l4 4-4 4"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </Link>
+              <Link
+                to="/calibrate-stress"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  background: "transparent",
+                  color: "#bfdbfe",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  padding: "10px 18px",
+                  borderRadius: "6px",
+                  textDecoration: "none",
+                  border: "1px solid #3b82f6",
+                }}
+                aria-label="Calibrate starting stress with Muse, then start a new run from day 1"
+              >
+                Play (Customized)
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path
+                    d="M3 7h8M7 3l4 4-4 4"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </Link>
+            </div>
+            <p style={{ margin: 0, fontSize: "11px", color: "#52525b", lineHeight: 1.5, textAlign: "center" }}>
+              Regular keeps the usual starting stress (50). Customized runs a 10-second Muse calibration, then starts a
+              new run with that value.
+            </p>
             <Link
               to="/how-it-works"
               style={{

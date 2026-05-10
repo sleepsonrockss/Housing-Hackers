@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { getResumeGameHref, RESTART_GAME_HREF } from "../game/playerSessionPersist";
+import NavBackButton from "./NavBackButton";
 
 const baseBtn = {
   display: "inline-flex",
@@ -21,6 +22,10 @@ const baseBtn = {
  * Consistent Home / Days / Continue (resume) / Restart / Choice log controls.
  * @param {{
  *   omitContinue?: boolean,
+ *   omitDays?: boolean,
+ *   omitChoiceLog?: boolean,
+ *   showBack?: boolean,
+ *   backFallback?: string,
  *   continueHref?: string,
  *   continueLabel?: string,
  *   compact?: boolean,
@@ -29,6 +34,10 @@ const baseBtn = {
  */
 export default function GameNavActions({
   omitContinue = false,
+  omitDays = false,
+  omitChoiceLog = false,
+  showBack = false,
+  backFallback = "/",
   continueHref: continueHrefProp,
   continueLabel = "Continue game",
   compact = false,
@@ -62,12 +71,17 @@ export default function GameNavActions({
         rowGap: gap,
       }}
     >
+      {showBack ? (
+        <NavBackButton fallback={backFallback} compact={compact} style={{ padding: compact ? "6px 8px" : "8px 10px" }} />
+      ) : null}
       <Link to="/" style={ghost}>
         Home
       </Link>
-      <Link to="/chapters" style={ghost}>
-        Days
-      </Link>
+      {!omitDays ? (
+        <Link to="/chapters" style={ghost}>
+          Days
+        </Link>
+      ) : null}
       {!omitContinue ? (
         <Link to={continueHref} style={primary}>
           {continueLabel}
@@ -76,9 +90,11 @@ export default function GameNavActions({
       <Link to={RESTART_GAME_HREF} style={restart} title="New run: resets money to $1850, stress, flags, and saved choices in this browser.">
         Restart run
       </Link>
-      <Link to="/game/run-log" style={ghost}>
-        Choice log
-      </Link>
+      {!omitChoiceLog ? (
+        <Link to="/game/run-log" style={ghost}>
+          Choice log
+        </Link>
+      ) : null}
     </nav>
   );
 }

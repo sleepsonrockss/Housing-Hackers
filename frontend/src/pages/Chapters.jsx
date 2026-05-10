@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { CHAPTER_TAG_FILTERS, getChaptersPageItems } from "../game/gameStructure";
 import GameNavActions from "../components/GameNavActions";
+import NavBackButton from "../components/NavBackButton";
 import SiteAuthHeaderLinks from "../components/SiteAuthHeaderLinks";
 import { getResumeGameHref } from "../game/playerSessionPersist";
 
@@ -48,37 +49,40 @@ export default function Chapters() {
             justifyContent: "space-between",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-            <Link
-              to="/"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-                textDecoration: "none",
-                color: "inherit",
-              }}
-            >
-              <div
+          <div style={{ display: "flex", alignItems: "center", flexShrink: 0, gap: "12px" }}>
+            <NavBackButton fallback="/" compact />
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <Link
+                to="/"
                 style={{
-                  height: "20px",
-                  width: "20px",
-                  background: "#fff",
-                  borderRadius: "4px",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
+                  gap: "10px",
+                  textDecoration: "none",
+                  color: "inherit",
                 }}
               >
-                <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                  <path d="M1 10L5.5 1 10 10H1z" fill="#090909" />
-                </svg>
-              </div>
-              <span style={{ fontSize: "13px", fontWeight: 600, letterSpacing: "-0.02em" }}>
-                TenantTales
-              </span>
-            </Link>
-            <SiteAuthHeaderLinks />
+                <div
+                  style={{
+                    height: "20px",
+                    width: "20px",
+                    background: "#fff",
+                    borderRadius: "4px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                    <path d="M1 10L5.5 1 10 10H1z" fill="#090909" />
+                  </svg>
+                </div>
+                <span style={{ fontSize: "13px", fontWeight: 600, letterSpacing: "-0.02em" }}>
+                  TenantTales
+                </span>
+              </Link>
+              <SiteAuthHeaderLinks />
+            </div>
           </div>
 
           <nav style={{ display: "flex", alignItems: "center", gap: "20px" }}>
@@ -313,7 +317,7 @@ export default function Chapters() {
         }}
       >
         <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
-          <GameNavActions />
+          <GameNavActions showBack backFallback="/" />
         </div>
         <p>© 2026 TenantTales. All rights reserved.</p>
         <p style={{ marginTop: "10px", maxWidth: "40rem", marginLeft: "auto", marginRight: "auto", lineHeight: 1.5 }}>

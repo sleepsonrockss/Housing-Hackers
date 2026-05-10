@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useVeoVideo } from "../hooks/useVeoVideo";
 import { interpolateScenarioText } from "../game/interpolate";
 import {
@@ -10,7 +10,13 @@ import {
   mergeFlags,
   normalizeStats,
 } from "../game/playerModel";
-import { clearPersistedRun, loadPersistedRun, savePersistedRun } from "../game/playerSessionPersist";
+import {
+  clearPersistedRun,
+  consumePendingInitialStress,
+  loadPersistedRun,
+  peekPendingInitialStress,
+  savePersistedRun,
+} from "../game/playerSessionPersist";
 import { getScenario, getStartScenarioId } from "../game/staticScenarios/index";
 import { CHAPTER_COUNT } from "../game/gameStructure";
 import { playChoiceStatSfx } from "../game/statChangeSfx";
@@ -71,12 +77,27 @@ function shouldHydrateRunFromSession() {
   }
 }
 
+/** Calibrated starting stress from `navigate(..., { state: { initialStress } })` (customized play). */
+function readInitialStressFromLocation(location) {
+  const s = location?.state?.initialStress;
+  if (typeof s !== "number" || !Number.isFinite(s)) return null;
+  return Math.min(100, Math.max(0, Math.round(s)));
+}
+
 export default function GameScenario() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const dayParam = searchParams.get("day") || "1";
 
   const [stats, setStats] = useState(() => {
-    if (!shouldHydrateRunFromSession()) return { ...INITIAL_PLAYER_STATS };
+    if (!shouldHydrateRunFromSession()) {
+      const fromRouter = readInitialStressFromLocation(location);
+      const fromPeek = fromRouter == null ? peekPendingInitialStress() : null;
+      const v = fromRouter ?? fromPeek;
+      if (v != null) return normalizeStats({ ...INITIAL_PLAYER_STATS, stress: v });
+      return { ...INITIAL_PLAYER_STATS };
+    }
     const saved = loadPersistedRun();
     return saved?.stats ? normalizeStats({ ...INITIAL_PLAYER_STATS, ...saved.stats }) : { ...INITIAL_PLAYER_STATS };
   });
@@ -113,14 +134,36 @@ export default function GameScenario() {
   const glossaryDialogRef = useRef(null);
   /** Only reset to chapter start when `?day=` changes — not when `unlockedDay` bumps mid-run. */
   const lastSyncedDayParamRef = useRef(null);
+  /**
+   * React 18 Strict Mode runs this effect twice; `consumePendingInitialStress()` clears sessionStorage
+   * on the first pass. Cache the resolved value so the second pass still applies calibrated stress.
+   * Ref: `undefined` = not computed yet; `null` = computed, use default stress; `number` = starting stress.
+   */
+  const resetCalibratedStressRef = useRef(undefined);
 
   const scenario = getScenario(scenarioId);
 
   /** Optional `?reset=1` — new run: clear meters, flags, and saved session. */
   useEffect(() => {
-    if (searchParams.get("reset") !== "1") return;
+    if (searchParams.get("reset") !== "1") {
+      resetCalibratedStressRef.current = undefined;
+      return;
+    }
     clearPersistedRun();
-    setStats({ ...INITIAL_PLAYER_STATS });
+    let calibratedStress;
+    if (resetCalibratedStressRef.current !== undefined) {
+      calibratedStress = resetCalibratedStressRef.current;
+    } else {
+      const fromRouter = readInitialStressFromLocation(location);
+      const fromSession = consumePendingInitialStress();
+      calibratedStress = fromRouter ?? fromSession;
+      resetCalibratedStressRef.current = calibratedStress ?? null;
+    }
+    const baseStats =
+      calibratedStress != null
+        ? normalizeStats({ ...INITIAL_PLAYER_STATS, stress: calibratedStress })
+        : { ...INITIAL_PLAYER_STATS };
+    setStats(baseStats);
     setFlags({});
     setUnlockedDay(1);
     setAnswersByChapter({});
@@ -132,8 +175,13 @@ export default function GameScenario() {
     setRunComplete(false);
     const next = new URLSearchParams(searchParams);
     next.delete("reset");
-    setSearchParams(next, { replace: true });
-  }, [searchParams, setSearchParams]);
+    const qs = next.toString();
+    navigate(
+      { pathname: location.pathname, search: qs ? `?${qs}` : "" },
+      { replace: true, state: {} }
+    );
+    // `location.state` is read when `reset=1`; omit from deps to avoid extra runs after `state` is cleared.
+  }, [searchParams, location.pathname, navigate]);
 
   /** When `?day=` changes, jump to that chapter's first beat. Do not reset when only `unlockedDay` changes (e.g. entering ch2). */
   useEffect(() => {
@@ -331,7 +379,12 @@ export default function GameScenario() {
               <span style={{ color: "#52525b", fontWeight: 400 }}> / 100</span>
             </span>
           </div>
-          <GameNavActions omitContinue compact />
+          <GameNavActions
+            omitContinue
+            compact
+            omitDays={showRunDock}
+            omitChoiceLog={showRunDock}
+          />
         </div>
       </header>
 
@@ -356,7 +409,6 @@ export default function GameScenario() {
                 <video
                   key={activeFileVideo}
                   autoPlay
-                  loop
                   controls
                   playsInline
                   title={`Scene: ${scenarioIndexLabel(scenario)}`}
@@ -381,8 +433,8 @@ export default function GameScenario() {
               <video
                 key={veo.videoUrl}
                 autoPlay
-                loop
                 controls
+                playsInline
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 src={veo.videoUrl}
               />
@@ -478,7 +530,12 @@ export default function GameScenario() {
                 </Link>
               </div>
               <div style={{ marginTop: "16px" }}>
-                <GameNavActions omitContinue compact />
+                <GameNavActions
+                  omitContinue
+                  compact
+                  omitDays={showRunDock}
+                  omitChoiceLog={showRunDock}
+                />
               </div>
             </section>
           ) : (

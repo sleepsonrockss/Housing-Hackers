@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import GameNavActions from "../components/GameNavActions";
-import { loadPersistedRun, RESTART_GAME_HREF } from "../game/playerSessionPersist";
+import NavBackButton from "../components/NavBackButton";
+import { getResumeGameHref, loadPersistedRun, RESTART_GAME_HREF } from "../game/playerSessionPersist";
 import { GAME_CHAPTERS } from "../game/gameStructure";
 
 function countChoices(answersByChapter) {
@@ -12,6 +13,7 @@ function countChoices(answersByChapter) {
 }
 
 export default function RunChoicesLog() {
+  const resumeHref = getResumeGameHref();
   const snapshot = loadPersistedRun();
 
   const answersByChapter = snapshot?.answersByChapter ?? {};
@@ -30,6 +32,9 @@ export default function RunChoicesLog() {
       }}
     >
       <header style={{ marginBottom: "1.75rem" }}>
+        <div style={{ marginBottom: "0.75rem" }}>
+          <NavBackButton fallback={resumeHref} label="Back" />
+        </div>
         <p style={{ margin: "0 0 0.5rem", fontSize: "0.75rem", letterSpacing: "0.08em", color: "#71717a" }}>
           Current saved run
         </p>
@@ -48,7 +53,7 @@ export default function RunChoicesLog() {
       </header>
 
       <div style={{ marginBottom: "2rem" }}>
-        <GameNavActions />
+        <GameNavActions showBack backFallback={resumeHref} />
       </div>
 
       {!snapshot ? (
