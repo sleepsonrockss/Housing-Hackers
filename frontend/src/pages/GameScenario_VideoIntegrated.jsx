@@ -355,7 +355,6 @@ export default function GameScenario() {
                 <video
                   key={activeFileVideo}
                   autoPlay
-                  loop
                   controls
                   playsInline
                   title={`Scene: ${scenarioIndexLabel(scenario)}`}
@@ -380,7 +379,6 @@ export default function GameScenario() {
               <video
                 key={veo.videoUrl}
                 autoPlay
-                loop
                 controls
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 src={veo.videoUrl}
