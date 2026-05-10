@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
+import { getResumeGameHref } from "../game/playerSessionPersist";
 
 export default function About() {
+  const playHref = getResumeGameHref();
   return (
     <div style={{ background: "#090909", color: "#fff", minHeight: "100vh" }}>
       {/* ── NAV ── */}
@@ -91,7 +93,7 @@ export default function About() {
               Sign in
             </Link>
             <Link
-              to="/signup"
+              to={playHref}
               style={{
                 fontSize: "13px",
                 fontWeight: 500,
@@ -102,7 +104,7 @@ export default function About() {
                 textDecoration: "none",
               }}
             >
-              Get started
+              Play
             </Link>
           </div>
         </div>
@@ -373,7 +375,7 @@ export default function About() {
             Help us empower the next generation of informed, confident renters.
           </p>
           <Link
-            to="/signup"
+            to={playHref}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -387,7 +389,7 @@ export default function About() {
               textDecoration: "none",
             }}
           >
-            Get Started Today
+            Play now
           </Link>
         </div>
       </section>

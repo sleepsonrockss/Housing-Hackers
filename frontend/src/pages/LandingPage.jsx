@@ -5,7 +5,7 @@ import {
   ESTIMATED_SCENARIO_TOTAL,
   getLandingChapterStrip,
 } from "../game/gameStructure";
-import { loadPersistedRun } from "../game/playerSessionPersist";
+import { getResumeGameHref, loadPersistedRun } from "../game/playerSessionPersist";
 
 export default function LandingPage() {
   // ─────────────────────────────────
@@ -18,7 +18,7 @@ export default function LandingPage() {
   const continueDay = hasStarted
     ? Math.max(1, Math.min(CHAPTER_COUNT, Math.floor(persistedRun.unlockedDay) || 1))
     : 1;
-  const primaryGameHref = `/game?day=${continueDay}`;
+  const primaryGameHref = useMemo(() => getResumeGameHref(), []);
   const primaryCtaLabel = hasStarted
     ? `Continue — Day ${String(continueDay).padStart(2, "0")}`
     : "Start";
@@ -209,7 +209,7 @@ export default function LandingPage() {
               Sign in
             </Link>
             <Link
-              to="/signup"
+              to={primaryGameHref}
               style={{
                 fontSize: "13px",
                 fontWeight: 500,
@@ -220,7 +220,7 @@ export default function LandingPage() {
                 textDecoration: "none",
               }}
             >
-              Get started
+              Play
             </Link>
           </div>
         </div>

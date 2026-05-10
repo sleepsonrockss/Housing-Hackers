@@ -16,6 +16,7 @@ function countChoices(answersByChapter) {
  *   runComplete: boolean,
  *   answersByChapter: Record<string, Array<{ scenarioId: string, scenarioTitle: string, choiceText: string }>>,
  *   navigationLocked?: boolean,
+ *   instanceId?: string — unique fragment for heading id when two copies mount (e.g. "sheet").
  * }} props
  */
 export default function FiveDayProgress({
@@ -24,14 +25,20 @@ export default function FiveDayProgress({
   runComplete,
   answersByChapter,
   navigationLocked = false,
+  instanceId = "main",
 }) {
   const totalLogged = countChoices(answersByChapter);
+  const headingId = `five-day-progress-heading-${instanceId}`;
 
   return (
-    <section className="five-day-progress" aria-labelledby="five-day-progress-heading">
+    <section
+      className={`five-day-progress${instanceId !== "main" ? " five-day-progress--nested" : ""}`}
+      aria-labelledby={headingId}
+      id="game-run-progress"
+    >
       <div className="five-day-progress-head">
         <div>
-          <h2 id="five-day-progress-heading" className="five-day-progress-title">
+          <h2 id={headingId} className="five-day-progress-title">
             Your five days
           </h2>
           <p className="five-day-progress-lead">
@@ -278,6 +285,12 @@ export default function FiveDayProgress({
         }
         .five-day-progress-chip-meta.muted {
           color: #3f3f46;
+        }
+        .five-day-progress--nested {
+          border-top: none;
+          padding-top: 0;
+          padding-left: 0;
+          padding-right: 0;
         }
       `}</style>
     </section>
