@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import Replicate from "replicate";
 import axios from "axios";
 import fs from "fs";
 import path from "path";
@@ -16,8 +17,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:5173" }));
 app.use(express.json());
 
-// Initialize Gemini AI
+// Initialize Gemini AI (text)
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const MODEL = "gemini-2.5-flash";
+
+// Initialize Replicate (video)
+const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
+
+// In-memory stores
+const cache = new Map();    // text generation cache
+const videoJobs = new Map(); // jobId → { status, videoUrl, error }
 
 // ============================================
 // SCENARIO LIBRARY
@@ -143,7 +152,7 @@ Format as:
 Make it conversational, relatable, and educational. Use simple language. Include tenant rights information naturally.
 `;
 
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = genAI.getGenerativeModel({ model: MODEL });
 
   try {
     const result = await model.generateContent(prompt);
@@ -181,7 +190,7 @@ Make it specific enough for an animator or AI video generator to create from.
 Format as a structured visual storyboard.
 `;
 
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = genAI.getGenerativeModel({ model: MODEL });
 
   try {
     const result = await model.generateContent(prompt);
@@ -218,7 +227,7 @@ Use "you" to address the player directly.
 Keep it under 60 seconds of spoken time.
 `;
 
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = genAI.getGenerativeModel({ model: MODEL });
 
   try {
     const result = await model.generateContent(prompt);
@@ -254,7 +263,7 @@ Produce THREE short sections:
 Keep the total under 150 words. Do not reveal the choices yet.
 `;
 
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = genAI.getGenerativeModel({ model: MODEL });
   const result = await model.generateContent(prompt);
   return result.response.text();
 }
@@ -310,8 +319,14 @@ app.post("/api/video/scene", async (req, res) => {
     if (!scenario) {
       return res.status(404).json({ error: "Scenario not found" });
     }
+    const cacheKey = `scene:${scenarioId}`;
+    if (cache.has(cacheKey)) {
+      return res.json(cache.get(cacheKey));
+    }
     const sceneContent = await generateSceneIntro(scenario);
-    res.json({ scenarioId, sceneContent, timestamp: new Date().toISOString() });
+    const payload = { scenarioId, sceneContent, timestamp: new Date().toISOString() };
+    cache.set(cacheKey, payload);
+    res.json(payload);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -439,6 +454,11 @@ app.post("/api/video/full", async (req, res) => {
       return res.status(404).json({ error: "Scenario not found" });
     }
 
+    const cacheKey = `full:${scenarioId}:${choiceId}`;
+    if (cache.has(cacheKey)) {
+      return res.json(cache.get(cacheKey));
+    }
+
     // Generate all components in parallel
     const [script, visualDescription, narration] = await Promise.all([
       generateVideoScript(scenario, choiceId),
@@ -446,22 +466,252 @@ app.post("/api/video/full", async (req, res) => {
       generateNarration(scenario, choiceId),
     ]);
 
-    res.json({
+    const payload = {
       scenarioId,
       choiceId,
-      scenario: {
-        title: scenario.title,
-        situation: scenario.situation,
-      },
-      video: {
-        script,
-        visualDescription,
-        narration,
-      },
+      scenario: { title: scenario.title, situation: scenario.situation },
+      video: { script, visualDescription, narration },
       timestamp: new Date().toISOString(),
-    });
+    };
+    cache.set(cacheKey, payload);
+    res.json(payload);
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+/**
+ * Build a Veo video prompt from scenario + optional choice
+ */
+function buildVideoPrompt(scenario, choice) {
+  if (choice) {
+    return (
+      `Cinematic 5-second short film clip, 16:9. A young person in a modest apartment. ` +
+      `Situation: ${scenario.situation} ` +
+      `They choose to: ${choice.text}. ` +
+      `Show the emotional result — ${choice.consequence === "negative" ? "stress and regret" : "relief and confidence"}. ` +
+      `Warm cinematic lighting, realistic style, no text overlays.`
+    );
+  }
+  return (
+    `Cinematic 5-second short film clip, 16:9. ` +
+    `A young person named Alex in a modest apartment, feeling ${scenario.mood}. ` +
+    `${scenario.situation} ` +
+    `Warm cinematic lighting, realistic style, no text overlays.`
+  );
+}
+
+/**
+ * POST /api/video/veo/start
+ * Start a Replicate video generation job (Wan 2.1).
+ * Body: { scenarioId, choiceId? }
+ * Returns: { jobId }
+ */
+app.post("/api/video/veo/start", async (req, res) => {
+  const { scenarioId, choiceId, prompt: rawPrompt } = req.body;
+
+  // Support raw prompt (for dynamically generated scenarios)
+  let prompt;
+  if (rawPrompt) {
+    prompt = rawPrompt;
+  } else {
+    if (!scenarioId) return res.status(400).json({ error: "scenarioId or prompt required" });
+    const scenario = SCENARIOS.find((s) => s.id === scenarioId);
+    if (!scenario) return res.status(404).json({ error: "Scenario not found" });
+    const choice = choiceId ? scenario.choices.find((c) => c.id === choiceId) : null;
+    prompt = buildVideoPrompt(scenario, choice);
+  }
+
+  const cacheKey = `video:${rawPrompt ? rawPrompt.slice(0, 80) : `${scenarioId}:${choiceId ?? "scene"}`}`;
+
+  if (cache.has(cacheKey)) {
+    const jobId = `cached-${Date.now()}`;
+    videoJobs.set(jobId, cache.get(cacheKey));
+    return res.json({ jobId });
+  }
+
+  const jobId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  videoJobs.set(jobId, { status: "pending" });
+  res.json({ jobId });
+
+  (async () => {
+    try {
+      console.log(`[Video] Starting job ${jobId}: ${prompt.slice(0, 80)}…`);
+
+      videoJobs.set(jobId, { status: "generating" });
+
+      // Retry up to 5 times on 429 rate limit
+      let output;
+      for (let attempt = 1; attempt <= 5; attempt++) {
+        try {
+          output = await replicate.run("minimax/video-01", { input: { prompt } });
+          break;
+        } catch (err) {
+          const is429 = err.message?.includes("429") || err.message?.includes("throttled");
+          if (is429 && attempt < 5) {
+            const waitMatch = err.message.match(/resets in ~?(\d+)s/);
+            const waitSecs = waitMatch ? parseInt(waitMatch[1]) + 2 : 15;
+            console.log(`[Video] Job ${jobId} rate limited, retrying in ${waitSecs}s (attempt ${attempt}/5)…`);
+            videoJobs.set(jobId, { status: "generating", retryIn: waitSecs });
+            await new Promise((r) => setTimeout(r, waitSecs * 1000));
+          } else {
+            throw err;
+          }
+        }
+      }
+
+      const videoUrl = output?.url?.() ?? (typeof output === "string" ? output : String(output));
+      if (!videoUrl) throw new Error("No video URL in response");
+
+      const result = { status: "done", videoUrl };
+      videoJobs.set(jobId, result);
+      cache.set(cacheKey, result);
+      console.log(`[Video] Job ${jobId} complete: ${videoUrl}`);
+    } catch (err) {
+      console.error(`[Video] Job ${jobId} failed:`, err.message);
+      videoJobs.set(jobId, { status: "error", error: err.message });
+    }
+  })();
+});
+
+/**
+ * GET /api/video/veo/status/:jobId
+ * Poll job status. Returns { status, videoUrl?, error? }
+ */
+app.get("/api/video/veo/status/:jobId", (req, res) => {
+  const job = videoJobs.get(req.params.jobId);
+  if (!job) return res.status(404).json({ error: "Job not found" });
+  res.json(job);
+});
+
+/**
+ * POST /api/video/visual-prompt
+ * Use Gemini to convert a scenario into a concrete visual prompt for Replicate.
+ * Body: { situation, mood, choiceText?, outcome?, consequence? }
+ * Returns: { visualPrompt }
+ */
+app.post("/api/video/visual-prompt", async (req, res) => {
+  const { situation, mood, choiceText, outcome, consequence } = req.body;
+
+  const isOutcome = !!choiceText;
+
+  const prompt = isOutcome ? `
+You are a cinematographer writing a shot description for a 5-second video clip.
+
+A young tenant (Alex, early 20s) just made this decision:
+Situation: ${situation}
+They chose: "${choiceText}"
+Result: ${outcome}
+Emotional tone: ${consequence === "negative" ? "regret, stress, worry" : consequence === "positive" ? "cautious relief, learning" : "confidence, relief, calm"}
+
+Write a single sentence (max 40 words) describing EXACTLY what is visually shown on screen:
+- Specific setting (e.g. "small apartment kitchen", "landlord's office doorway")
+- What Alex is physically doing (e.g. "head in hands at a desk", "signing a document and smiling")
+- Facial expression and body language
+- One key prop visible (e.g. crumpled receipt, phone showing notification, lease paper)
+
+Only output the visual description. No intro, no explanation.
+` : `
+You are a cinematographer writing a shot description for a 5-second video clip.
+
+A young tenant (Alex, early 20s) is facing this situation:
+${situation}
+Their mood: ${mood}
+
+Write a single sentence (max 40 words) describing EXACTLY what is visually shown on screen:
+- Specific setting inside an apartment
+- What Alex is physically doing right now
+- Their facial expression (${mood})
+- One key prop that hints at the problem (phone, letter, lease, broken fixture, etc.)
+
+Only output the visual description. No intro, no explanation.
+`;
+
+  try {
+    const model = genAI.getGenerativeModel({ model: MODEL });
+    const result = await model.generateContent(prompt);
+    let visualPrompt = result.response.text().trim();
+    // Append style suffix
+    visualPrompt += " Cinematic lighting, shallow depth of field, realistic, 16:9, no text overlays.";
+    res.json({ visualPrompt });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /api/scenario/next
+ * Use Gemini to generate the next scenario based on the previous outcome.
+ * Body: { previousSituation, chosenText, outcome, consequence, lesson, chapterNumber }
+ * Returns: a full scenario object with 3 choices
+ */
+app.post("/api/scenario/next", async (req, res) => {
+  const { previousSituation, chosenText, outcome, consequence, lesson, chapterNumber = 1 } = req.body;
+
+  const prompt = `
+You are a game designer for "TenantTales", an educational game teaching tenant rights to young adults.
+
+The player just completed this scenario:
+- Situation: ${previousSituation}
+- They chose: "${chosenText}"
+- Outcome: ${outcome}
+- Lesson learned: ${lesson}
+- Result quality: ${consequence}
+
+Generate the NEXT scenario that naturally follows from this outcome. The scenario should:
+- Be a realistic new challenge Alex faces as a tenant (could be about rent, repairs, neighbours, deposits, eviction, subletting, or communication with landlord)
+- Escalate slightly in complexity if the previous consequence was "excellent" or "positive"
+- Be a fresh situation if consequence was "negative" (they need to try again differently)
+- Have exactly 3 choices with clearly different consequences
+
+Respond ONLY with valid JSON in this exact format, no extra text:
+{
+  "title": "short scenario title",
+  "chapter": "chapter theme name",
+  "mood": "one of: uncertain, cautious, stressed, hopeful, angry, overwhelmed, excited, suspicious",
+  "situation": "2-3 sentence description of the situation Alex faces",
+  "choices": [
+    {
+      "id": 1,
+      "text": "choice text (under 15 words)",
+      "outcome": "what happens as a result (1-2 sentences)",
+      "consequence": "negative",
+      "lesson": "the lesson learned (1 sentence)"
+    },
+    {
+      "id": 2,
+      "text": "choice text (under 15 words)",
+      "outcome": "what happens as a result (1-2 sentences)",
+      "consequence": "positive",
+      "lesson": "the lesson learned (1 sentence)"
+    },
+    {
+      "id": 3,
+      "text": "choice text (under 15 words)",
+      "outcome": "what happens as a result (1-2 sentences)",
+      "consequence": "excellent",
+      "lesson": "the lesson learned (1 sentence)"
+    }
+  ]
+}
+`;
+
+  try {
+    const model = genAI.getGenerativeModel({ model: MODEL });
+    const result = await model.generateContent(prompt);
+    let text = result.response.text().trim();
+
+    // Strip markdown code fences if present
+    text = text.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
+
+    const scenario = JSON.parse(text);
+    scenario.id = Date.now(); // unique id
+    scenario.day = chapterNumber;
+    res.json(scenario);
+  } catch (err) {
+    console.error("[ScenarioNext] Error:", err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 
