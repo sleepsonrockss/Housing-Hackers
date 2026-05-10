@@ -13,6 +13,7 @@ import {
 import { clearPersistedRun, loadPersistedRun, savePersistedRun } from "../game/playerSessionPersist";
 import { getScenario, getStartScenarioId } from "../game/staticScenarios/index";
 import { CHAPTER_COUNT } from "../game/gameStructure";
+import { playChoiceStatSfx } from "../game/statChangeSfx";
 import { HOUSING_GLOSSARY } from "../game/housingGlossary";
 import { GlossaryRichText } from "../components/GlossaryRichText";
 import FiveDayProgress from "../components/FiveDayProgress";
@@ -242,6 +243,7 @@ export default function GameScenario() {
     const md =
       typeof chosen.moneyDelta === "number" ? applyScaledMoneyDelta(chosen.moneyDelta) : null;
     const sd = typeof chosen.stressDelta === "number" ? chosen.stressDelta : null;
+    playChoiceStatSfx(md, sd);
     const hasDeltaMotion = (md != null && md !== 0) || (sd != null && sd !== 0);
     if (hasDeltaMotion) setSpendAnimKey((k) => k + 1);
     setPendingAdvance({

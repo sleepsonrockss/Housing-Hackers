@@ -5,12 +5,23 @@ import {
   ESTIMATED_SCENARIO_TOTAL,
   getLandingChapterStrip,
 } from "../game/gameStructure";
+import { loadPersistedRun } from "../game/playerSessionPersist";
 
 export default function LandingPage() {
   // ─────────────────────────────────
   // Data
   // ─────────────────────────────────
   const CHAPTERS = useMemo(() => getLandingChapterStrip(), []);
+  /** Re-read on each mount (e.g. return from `/game`) so CTA matches session. */
+  const persistedRun = useMemo(() => loadPersistedRun(), []);
+  const hasStarted = persistedRun != null;
+  const continueDay = hasStarted
+    ? Math.max(1, Math.min(CHAPTER_COUNT, Math.floor(persistedRun.unlockedDay) || 1))
+    : 1;
+  const primaryGameHref = `/game?day=${continueDay}`;
+  const primaryCtaLabel = hasStarted
+    ? `Continue — Day ${String(continueDay).padStart(2, "0")}`
+    : "Start";
 
   const TAG_COLORS = {
     Money: "background:#1c1200;color:#fbbf24;",
@@ -328,7 +339,7 @@ export default function LandingPage() {
           {/* CTA Buttons */}
           <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
             <Link
-              to="/game"
+              to={primaryGameHref}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -341,8 +352,9 @@ export default function LandingPage() {
                 borderRadius: "6px",
                 textDecoration: "none",
               }}
+              aria-label={hasStarted ? `Continue game at chapter ${continueDay}` : "Start game from chapter 1"}
             >
-              Continue — Day 03
+              {primaryCtaLabel}
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path
                   d="M3 7h8M7 3l4 4-4 4"
