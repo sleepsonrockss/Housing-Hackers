@@ -1,20 +1,21 @@
 /**
  * Chapter 1 — Survival Money (NextTenant v2).
- * Amounts use {{balance}} / {{amt:N}} against live money.
- * Deltas are study-scaled (~50/50 money vs stress impact): moderate |money| and |stress| so runs rarely hit $0 or 100 stress early.
+ * `{{balance}}` = live cash. `{{loss:N}}` = dollar copy scaled like negative moneyDelta (see playerModel). `{{amt:N}}` = literal (wages, bill totals, cash-in).
+ * Deltas are study-scaled (~50/50 money vs stress in each beat). Negative `moneyDelta` is inflated at runtime (`MONEY_LOSS_SCALE` in playerModel) toward ~70% money survival.
+ * Titles use "1.1" style (chapter.question); header derives the same from scenario id.
  */
 
 export const CHAPTER_1_SCENARIOS = {
   "c1-q1": {
     id: "c1-q1",
     chapter: 1,
-    title: "Q1.1",
+    title: "1.1",
     mood: "uncertain",
-    situation: `It's your first week in your own place. Income support and rent already cleared — you have about {{balance}} left for the rest of the month. Your phone buzzes — a "limited time sale" from a store you love. It's a hoodie you've been wanting for {{amt:65}}. You think: I deserve something nice. This place feels so empty.`,
+    situation: `It's your first week in your own place. Income support and rent already cleared — you have about {{balance}} left for the rest of the month. Your phone buzzes — a "limited time sale" from a store you love. It's a hoodie you've been wanting for {{loss:28}}. You think: I deserve something nice. This place feels so empty.`,
     choices: [
       {
         id: 1,
-        text: "Buy it — you've been through a lot and you deserve it.",
+        text: "Buy it ({{loss:28}}) — you've been through a lot and you deserve it.",
         moneyDelta: -28,
         stressDelta: 8,
         flagsSet: ["splurged_hoodie_c1"],
@@ -38,7 +39,7 @@ export const CHAPTER_1_SCENARIOS = {
       },
       {
         id: 3,
-        text: "Compromise — look for the same thing secondhand online.",
+        text: "Compromise — look for the same thing secondhand online ({{loss:9}}).",
         moneyDelta: -9,
         stressDelta: 0,
         consequence: "positive",
@@ -53,13 +54,13 @@ export const CHAPTER_1_SCENARIOS = {
   "c1-q2": {
     id: "c1-q2",
     chapter: 1,
-    title: "Q1.2",
+    title: "1.2",
     mood: "stressed",
-    situation: `You set up automatic rent payment. But groceries cleaned out your account more than you expected. It's the 1st. Your rent autopay bounced — an NSF (Non-Sufficient Funds) fee just hit: {{amt:35}}. Your landlord texts: "Payment didn't go through." You have about {{balance}} on hand right now.`,
+    situation: `You set up automatic rent payment. But groceries cleaned out your account more than you expected. It's the 1st. Your rent autopay bounced — an NSF (Non-Sufficient Funds) fee just hit: {{loss:18}}. Your landlord texts: "Payment didn't go through." You have about {{balance}} on hand right now.`,
     choices: [
       {
         id: 1,
-        text: "Immediately e-transfer the rent manually and call the bank about the NSF fee.",
+        text: "Immediately e-transfer the rent manually and call the bank about the NSF fee ({{loss:18}}).",
         moneyDelta: -18,
         stressDelta: -6,
         consequence: "positive",
@@ -70,7 +71,7 @@ export const CHAPTER_1_SCENARIOS = {
       },
       {
         id: 2,
-        text: "Pay the rent — deal with the NSF fee later.",
+        text: "Pay the rent — deal with the NSF fee later (still {{loss:18}} on the fee).",
         moneyDelta: -18,
         stressDelta: 6,
         consequence: "negative",
@@ -96,13 +97,13 @@ export const CHAPTER_1_SCENARIOS = {
   "c1-q3": {
     id: "c1-q3",
     chapter: 1,
-    title: "Q1.3",
+    title: "1.3",
     mood: "anxious",
-    situation: `You're several days from your next cheque. You have about {{balance}}. You need about {{amt:60}} for groceries and a bus pass to make appointments this week. A "QuickCash" sign is on your way home. No credit check. Money in 10 minutes.`,
+    situation: `You're several days from your next cheque. You have about {{balance}}. You need about {{loss:60}} for groceries and a bus pass to make appointments this week. A "QuickCash" sign is on your way home. No credit check. Money in 10 minutes.`,
     choices: [
       {
         id: 1,
-        text: "Take the payday loan ($60 borrowed, $95 owed on payday).",
+        text: "Take the payday loan ({{amt:24}} now — {{loss:95}} due on payday).",
         moneyDelta: 24,
         stressDelta: 9,
         flagsSet: ["payday_loan_c1"],
@@ -151,13 +152,13 @@ export const CHAPTER_1_SCENARIOS = {
   "c1-q4": {
     id: "c1-q4",
     chapter: 1,
-    title: "Q1.4",
+    title: "1.4",
     mood: "tense",
-    situation: `Your budget is stretched. You have about {{balance}} left for the next stretch of the month. You're weighing Netflix ({{amt:18}}), a bus pass ({{amt:35}} — you need it for appointments), groceries (about {{amt:40}}), and your phone bill ({{amt:45}} — autopay in 4 days). The bills coming up add up to more than what you have. What do you cut?`,
+    situation: `Your budget is stretched. You have about {{balance}} left for the next stretch of the month. You're weighing Netflix ({{loss:18}}), a bus pass ({{loss:35}} — you need it for appointments), groceries (about {{loss:40}}), and your phone bill ({{loss:45}} — autopay in 4 days). The bills coming up add up to more than what you have. What do you cut?`,
     choices: [
       {
         id: 1,
-        text: "Cancel Netflix, buy groceries, keep bus pass — let phone bill bounce.",
+        text: "Cancel Netflix, buy groceries, keep bus pass — let phone bill bounce ({{loss:32}} net squeeze).",
         moneyDelta: -32,
         stressDelta: 8,
         consequence: "negative",
@@ -168,7 +169,7 @@ export const CHAPTER_1_SCENARIOS = {
       },
       {
         id: 2,
-        text: "Cancel Netflix, pay phone bill, skip groceries this week.",
+        text: "Cancel Netflix, pay phone bill, skip groceries this week ({{loss:28}}).",
         moneyDelta: -28,
         stressDelta: 9,
         consequence: "negative",
@@ -179,7 +180,7 @@ export const CHAPTER_1_SCENARIOS = {
       },
       {
         id: 3,
-        text: "Cancel Netflix, buy partial groceries ($20 basics only), keep bus pass, pay phone bill.",
+        text: "Cancel Netflix, buy partial groceries (basics only), keep bus pass, pay phone bill ({{loss:35}}).",
         moneyDelta: -35,
         stressDelta: -7,
         consequence: "excellent",
@@ -205,14 +206,14 @@ export const CHAPTER_1_SCENARIOS = {
   "c1-q5": {
     id: "c1-q5",
     chapter: 1,
-    title: "Q1.5",
+    title: "1.5",
     mood: "conflicted",
-    situation: `Someone from your old situation texts: "Hey can u lend me $80 just till friday I swear ill pay back." Friday came and went last time. You have about {{balance}} left for the next ten days.`,
+    situation: `Someone from your old situation texts: "Hey can u lend me {{loss:80}} just till friday I swear ill pay back." Friday came and went last time. You have about {{balance}} left for the next ten days.`,
     choices: [
       {
         id: 1,
-        text: "Send the $80 — they sound desperate.",
-        moneyDelta: -32,
+        text: "Send {{loss:80}} — they sound desperate.",
+        moneyDelta: -80,
         stressDelta: 9,
         consequence: "negative",
         outcome:
@@ -222,7 +223,7 @@ export const CHAPTER_1_SCENARIOS = {
       },
       {
         id: 2,
-        text: "Offer $20 and say it's genuinely all you can spare.",
+        text: "Offer {{loss:10}} and say it's genuinely all you can spare.",
         moneyDelta: -10,
         stressDelta: 5,
         consequence: "negative",

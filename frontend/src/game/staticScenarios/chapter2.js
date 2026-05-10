@@ -6,7 +6,7 @@ export const CHAPTER_2_SCENARIOS = {
   "c2-q1": {
     id: "c2-q1",
     chapter: 2,
-    title: "Q2.1",
+    title: "2.1",
     mood: "focused",
     situation: `You're reviewing your lease (finally). You find this clause: "All security deposits are non-refundable regardless of condition of unit upon move-out." You want the apartment badly. The landlord says "everyone signs this, it's standard." You have about {{balance}} available if fees hit today.`,
     choices: [
@@ -60,7 +60,7 @@ export const CHAPTER_2_SCENARIOS = {
   "c2-q2": {
     id: "c2-q2",
     chapter: 2,
-    title: "Q2.2",
+    title: "2.2",
     mood: "tense",
     situation: `It's Tuesday morning, 8am. You get a text from your landlord: "Hey I'm in the area, gonna pop by in 10 min to check the furnace." You're still in bed recovering from a hard week. You haven't given permission.`,
     choices: [
@@ -103,7 +103,7 @@ export const CHAPTER_2_SCENARIOS = {
   "c2-q3": {
     id: "c2-q3",
     chapter: 2,
-    title: "Q2.3",
+    title: "2.3",
     mood: "serious",
     situation: `Mold appeared in the corner of your bathroom ceiling two weeks ago. It's getting bigger. You're scared of conflict with your landlord. You're also not sure if it's your fault.`,
     choices: [
@@ -120,7 +120,7 @@ export const CHAPTER_2_SCENARIOS = {
       },
       {
         id: 2,
-        text: "Try to clean it yourself with bleach from the dollar store ({{amt:5}}).",
+        text: "Try to clean it yourself with bleach from the dollar store ({{loss:4}}).",
         moneyDelta: -4,
         stressDelta: 0,
         consequence: "positive",
@@ -157,13 +157,13 @@ export const CHAPTER_2_SCENARIOS = {
   "c2-q4": {
     id: "c2-q4",
     chapter: 2,
-    title: "Q2.4",
+    title: "2.4",
     mood: "stressed",
     situation: `Your first utility bill arrived. It's {{amt:210}}. You thought utilities were included in rent. In the lease, a section you skimmed says tenant pays power and heat. You have about {{balance}} left this month.`,
     choices: [
       {
         id: 1,
-        text: "Pay what you can ({{amt:180}}) and call the utility company about the rest.",
+        text: "Pay what you can ({{loss:42}}) and call the utility company about the rest.",
         moneyDelta: -42,
         stressDelta: 6,
         consequence: "negative",
@@ -200,13 +200,13 @@ export const CHAPTER_2_SCENARIOS = {
   "c2-q5": {
     id: "c2-q5",
     chapter: 2,
-    title: "Q2.5",
+    title: "2.5",
     mood: "conflicted",
-    situation: `Your landlord says you can have a cat — but adds a handwritten note: "{{amt:400}} non-refundable pet fee in addition to damage deposit." You already have the cat. You're attached and you need her for emotional support.`,
+    situation: `Your landlord says you can have a cat — but adds a handwritten note: "{{loss:52}} non-refundable pet fee in addition to damage deposit." You already have the cat. You're attached and you need her for emotional support.`,
     choices: [
       {
         id: 1,
-        text: "Pay the $400 — you need to keep your cat.",
+        text: "Pay {{loss:52}} — you need to keep your cat.",
         moneyDelta: -52,
         stressDelta: 5,
         consequence: "negative",

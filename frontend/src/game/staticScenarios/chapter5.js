@@ -6,7 +6,7 @@ export const CHAPTER_5_SCENARIOS = {
   "c5-q1": {
     id: "c5-q1",
     chapter: 5,
-    title: "Q5.1",
+    title: "5.1",
     mood: "determined",
     situation: `A part-time job appears — 15 hours/week at about {{amt:16}}/hour. You want it. Your income support may claw back if you earn over a threshold — you are not sure exactly where the cutoff is.`,
     choices: [
@@ -62,13 +62,13 @@ export const CHAPTER_5_SCENARIOS = {
   "c5-q2": {
     id: "c5-q2",
     chapter: 5,
-    title: "Q5.2",
+    title: "5.2",
     mood: "practical",
     situation: `Your lease is up in six weeks. The landlord emails a renewal — about {{amt:85}}/month rent increase. You can barely afford it.`,
     choices: [
       {
         id: 1,
-        text: "Sign immediately — don't rock the boat.",
+        text: "Sign immediately — don't rock the boat ({{loss:22}} from this month's buffer).",
         moneyDelta: -22,
         stressDelta: 3,
         consequence: "negative",
@@ -116,13 +116,13 @@ export const CHAPTER_5_SCENARIOS = {
   "c5-q3": {
     id: "c5-q3",
     chapter: 5,
-    title: "Q5.3",
+    title: "5.3",
     mood: "hopeful",
     situation: `Things are okay this week. You have a small surplus — about {{amt:75}} — you did not spend. Your first instinct is to treat yourself.`,
     choices: [
       {
         id: 1,
-        text: "Spend the $75 — you've earned it.",
+        text: "Spend {{loss:22}} — you've earned it.",
         moneyDelta: -22,
         stressDelta: -4,
         consequence: "positive",
@@ -133,7 +133,7 @@ export const CHAPTER_5_SCENARIOS = {
       },
       {
         id: 2,
-        text: "Transfer {{amt:50}} to emergency savings, spend {{amt:25}} on something small.",
+        text: "Transfer part to emergency savings and spend a little ({{loss:22}} net from surplus).",
         moneyDelta: -22,
         stressDelta: -3,
         consequence: "positive",
@@ -144,7 +144,7 @@ export const CHAPTER_5_SCENARIOS = {
       },
       {
         id: 3,
-        text: "Transfer the full $75 to savings.",
+        text: "Transfer the full {{amt:75}} to savings.",
         moneyDelta: 0,
         stressDelta: -3,
         consequence: "excellent",
@@ -159,7 +159,7 @@ export const CHAPTER_5_SCENARIOS = {
   "c5-q4": {
     id: "c5-q4",
     chapter: 5,
-    title: "Q5.4",
+    title: "5.4",
     mood: "reflective",
     situation: `You're still housed. There are things on your walls now — sometimes a routine works. Some nights are still hard.
 

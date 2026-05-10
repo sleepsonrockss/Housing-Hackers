@@ -4,6 +4,20 @@ export const INITIAL_PLAYER_STATS = {
   stress: 50,
 };
 
+/**
+ * Scenario `moneyDelta` negatives are baseline amounts; this multiplier inflates real losses
+ * so money game-over is reachable on very bad paths, while typical / mixed play targets
+ * ~70% money survival vs ~30% hitting $0 (tune with study data).
+ */
+export const MONEY_LOSS_SCALE = 5;
+
+/** Apply loss inflation; non-negative deltas pass through rounded. */
+export function applyScaledMoneyDelta(rawDelta) {
+  if (typeof rawDelta !== "number" || !Number.isFinite(rawDelta)) return 0;
+  if (rawDelta >= 0) return Math.round(rawDelta);
+  return Math.round(rawDelta * MONEY_LOSS_SCALE);
+}
+
 /** Keep only money + stress and enforce bounds (drops legacy `mentalBattery` from saves). */
 export function normalizeStats(raw) {
   const money =
@@ -20,7 +34,7 @@ export function normalizeStats(raw) {
 
 export function applyChoiceDeltas(stats, choice) {
   const next = normalizeStats(stats);
-  if (typeof choice.moneyDelta === "number") next.money += choice.moneyDelta;
+  if (typeof choice.moneyDelta === "number") next.money += applyScaledMoneyDelta(choice.moneyDelta);
   if (typeof choice.stressDelta === "number") next.stress += choice.stressDelta;
   next.money = Math.max(0, next.money);
   next.stress = clamp(next.stress, 0, 100);

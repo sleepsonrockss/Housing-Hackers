@@ -6,7 +6,7 @@ export const CHAPTER_4_SCENARIOS = {
   "c4-q1": {
     id: "c4-q1",
     chapter: 4,
-    title: "Q4.1",
+    title: "4.1",
     mood: "exhausted",
     situation: `You haven't left your apartment in three days. Nine unread messages. Dishes everywhere. Two appointments you didn't make. Sleep feels 1/5; stress feels 5/5; connection feels 1/5. Something has to change — but where do you start?`,
     choices: [
@@ -60,7 +60,7 @@ export const CHAPTER_4_SCENARIOS = {
   "c4-q2": {
     id: "c4-q2",
     chapter: 4,
-    title: "Q4.2",
+    title: "4.2",
     mood: "grief",
     situation: `You just got a call: someone close to you passed away. You're in shock. Rent is due in four days and an inspection is next week. Everything feels impossible.`,
     choices: [
@@ -114,7 +114,7 @@ export const CHAPTER_4_SCENARIOS = {
   "c4-q3": {
     id: "c4-q3",
     chapter: 4,
-    title: "Q4.3",
+    title: "4.3",
     mood: "panicked",
     situation: `Your income support is delayed — a processing error. It's been ten days. Rent is in eight days. You have about {{balance}}. You've been here before and you know the panic.`,
     choices: [
@@ -168,7 +168,7 @@ export const CHAPTER_4_SCENARIOS = {
   "c4-q4": {
     id: "c4-q4",
     chapter: 4,
-    title: "Q4.4",
+    title: "4.4",
     mood: "overwhelmed",
     situation: `Construction starts at 7am. You must dispute a billing error — about {{amt:45}} — but the noise makes a phone call feel impossible. It's been three weeks unresolved.`,
     choices: [

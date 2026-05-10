@@ -6,13 +6,13 @@ export const CHAPTER_3_SCENARIOS = {
   "c3-q1": {
     id: "c3-q1",
     chapter: 3,
-    title: "Q3.1",
+    title: "3.1",
     mood: "uneasy",
     situation: `Someone you know shows up at 9pm with a bag. "Can I crash for just two nights? I've got nowhere to go." Your lease says no unauthorized occupants.`,
     choices: [
       {
         id: 1,
-        text: 'Let them stay — two nights won\'t hurt.',
+        text: 'Let them stay — two nights won\'t hurt ({{loss:8}} food / supplies).',
         moneyDelta: -8,
         stressDelta: 8,
         consequence: "negative",
@@ -23,7 +23,7 @@ export const CHAPTER_3_SCENARIOS = {
       },
       {
         id: 2,
-        text: "Set a firm boundary: exactly two nights and a plan for where they go after.",
+        text: "Set a firm boundary: exactly two nights and a plan for where they go after ({{loss:6}} basics).",
         moneyDelta: -6,
         stressDelta: 5,
         consequence: "positive",
@@ -60,7 +60,7 @@ export const CHAPTER_3_SCENARIOS = {
   "c3-q2": {
     id: "c3-q2",
     chapter: 3,
-    title: "Q3.2",
+    title: "3.2",
     mood: "serious",
     situation: `Someone asks: "Can I get my mail sent to your place? I just need an address for my benefits — only for a little while."`,
     choices: [
@@ -103,7 +103,7 @@ export const CHAPTER_3_SCENARIOS = {
   "c3-q3": {
     id: "c3-q3",
     chapter: 3,
-    title: "Q3.3",
+    title: "3.3",
     mood: "practical",
     situation: `Your kitchen faucet has been dripping for two weeks. You've mentioned it verbally twice in the hallway. Nothing's happened. Your water bill is climbing.`,
     choices: [
@@ -131,7 +131,7 @@ export const CHAPTER_3_SCENARIOS = {
       },
       {
         id: 3,
-        text: "Fix it yourself — call a plumber (about {{amt:80}}–{{amt:150}}).",
+        text: "Fix it yourself — call a plumber (about {{loss:25}}).",
         moneyDelta: -25,
         stressDelta: -3,
         consequence: "negative",
@@ -146,7 +146,7 @@ export const CHAPTER_3_SCENARIOS = {
   "c3-q4": {
     id: "c3-q4",
     chapter: 3,
-    title: "Q3.4",
+    title: "3.4",
     mood: "stressed",
     situation: `Music until midnight on weeknights — you haven't slept well in five days. A note under your door says the landlord heard a complaint about you in retaliation (for what, you don't know).`,
     choices: [

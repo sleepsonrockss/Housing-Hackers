@@ -4,6 +4,7 @@ import { useVeoVideo } from "../hooks/useVeoVideo";
 import { interpolateScenarioText } from "../game/interpolate";
 import {
   applyChoiceDeltas,
+  applyScaledMoneyDelta,
   getGameOverReason,
   INITIAL_PLAYER_STATS,
   mergeFlags,
@@ -23,6 +24,34 @@ const USE_VEO_WHEN_NO_FILE =
   import.meta.env.VITE_USE_VEO_VIDEO_FALLBACK === "true";
 
 const formatTime = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
+/** e.g. c1-q3 → "1.3"; c1-outro → falls back to scenario.title */
+function scenarioIndexLabel(s) {
+  if (!s?.id) return "";
+  const m = /^c(\d+)-q(\d+)$/.exec(s.id);
+  return m ? `${m[1]}.${m[2]}` : s.title || "";
+}
+
+/**
+ * `cN-outro` is a bridge beat with a single "continue" choice; skip it so the
+ * player lands on the next real scenario (or run-complete after chapter 5).
+ */
+function resolveNextScenarioJump(fromId) {
+  if (!fromId) return { targetId: null, runComplete: true };
+  let id = fromId;
+  for (let hop = 0; hop < 8; hop++) {
+    const sc = getScenario(id);
+    if (!sc) return { targetId: null, runComplete: true };
+    if (/^c\d+-outro$/i.test(sc.id)) {
+      const onward = sc.choices?.[0]?.nextId ?? null;
+      if (onward == null) return { targetId: null, runComplete: true };
+      id = onward;
+      continue;
+    }
+    return { targetId: id, runComplete: false };
+  }
+  return { targetId: null, runComplete: true };
+}
 
 /** Wait after choice before loading next beat (ms). */
 const ADVANCE_NO_SPEND_MS = 320;
@@ -64,6 +93,8 @@ export default function GameScenario() {
   const [videoBroken, setVideoBroken] = useState(false);
   const [glossaryKey, setGlossaryKey] = useState(null);
   const glossaryDialogRef = useRef(null);
+  /** Only reset to chapter start when `?day=` changes — not when `unlockedDay` bumps mid-run. */
+  const lastSyncedDayParamRef = useRef(null);
 
   const scenario = getScenario(scenarioId);
 
@@ -76,21 +107,30 @@ export default function GameScenario() {
     setUnlockedDay(1);
     setAnswersByChapter({});
     setGameOverReason(null);
+    const dayFromUrl = Math.max(1, Math.min(CHAPTER_COUNT, parseInt(String(searchParams.get("day") || "1"), 10) || 1));
+    lastSyncedDayParamRef.current = null;
+    setScenarioId(getStartScenarioId(String(dayFromUrl)));
+    setPendingAdvance(null);
+    setRunComplete(false);
     const next = new URLSearchParams(searchParams);
     next.delete("reset");
     setSearchParams(next, { replace: true });
   }, [searchParams, setSearchParams]);
 
-  /** Jumping day from the strip clamps to unlocked progress; money, stress, and flags still carry on. */
+  /** When `?day=` changes, jump to that chapter's first beat. Do not reset when only `unlockedDay` changes (e.g. entering ch2). */
   useEffect(() => {
     if (gameOverReason) return;
     const requested = Math.max(1, Math.min(CHAPTER_COUNT, parseInt(String(dayParam), 10) || 1));
     const safe = Math.min(requested, unlockedDay);
     if (safe !== requested) {
       setSearchParams({ day: String(safe) }, { replace: true });
+      lastSyncedDayParamRef.current = String(safe);
       return;
     }
-    setScenarioId(getStartScenarioId(String(safe)));
+    const dayKey = String(safe);
+    if (lastSyncedDayParamRef.current === dayKey) return;
+    lastSyncedDayParamRef.current = dayKey;
+    setScenarioId(getStartScenarioId(dayKey));
     setPendingAdvance(null);
     setRunComplete(false);
     setVideoBroken(false);
@@ -120,15 +160,21 @@ export default function GameScenario() {
         setGameOverReason(go);
         return;
       }
-      if (nextId && getScenario(nextId)) {
-        const nextSc = getScenario(nextId);
-        setUnlockedDay((u) => Math.max(u, nextSc.chapter));
-        setRunComplete(false);
-        setScenarioId(nextId);
-        setVideoBroken(false);
-      } else {
+      const { targetId, runComplete: chapterDone } = resolveNextScenarioJump(nextId);
+      if (chapterDone || !targetId) {
         setRunComplete(true);
+        return;
       }
+      const nextSc = getScenario(targetId);
+      if (!nextSc) {
+        setRunComplete(true);
+        return;
+      }
+      setUnlockedDay((u) => Math.max(u, nextSc.chapter));
+      setSearchParams({ day: String(nextSc.chapter) }, { replace: true });
+      setRunComplete(false);
+      setScenarioId(targetId);
+      setVideoBroken(false);
     }, ms);
     return () => window.clearTimeout(id);
   }, [pendingAdvance]);
@@ -189,11 +235,12 @@ export default function GameScenario() {
         ...prev,
         [chKey]: [
           ...(Array.isArray(prev[chKey]) ? prev[chKey] : []),
-          { scenarioId: scenario.id, scenarioTitle: scenario.title, choiceText: choiceLabel },
+          { scenarioId: scenario.id, scenarioTitle: scenarioIndexLabel(scenario), choiceText: choiceLabel },
         ],
       }));
     }
-    const md = typeof chosen.moneyDelta === "number" ? chosen.moneyDelta : null;
+    const md =
+      typeof chosen.moneyDelta === "number" ? applyScaledMoneyDelta(chosen.moneyDelta) : null;
     const sd = typeof chosen.stressDelta === "number" ? chosen.stressDelta : null;
     const hasDeltaMotion = (md != null && md !== 0) || (sd != null && sd !== 0);
     if (hasDeltaMotion) setSpendAnimKey((k) => k + 1);
@@ -236,11 +283,7 @@ export default function GameScenario() {
         }}
       >
         <div id="scenario-heading" style={{ fontSize: "16px", fontWeight: 600 }}>
-          {runComplete && scenario.chapter >= CHAPTER_COUNT
-            ? "Done"
-            : runComplete
-              ? `Ch.${scenario.chapter}`
-              : scenario.title}
+          {runComplete && scenario.chapter >= CHAPTER_COUNT ? "Done" : scenarioIndexLabel(scenario)}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
           <div style={{ display: "flex", gap: "16px", fontSize: "12px", color: "#a1a1aa" }}>
@@ -286,7 +329,7 @@ export default function GameScenario() {
                   loop
                   controls
                   playsInline
-                  title={`Scene: ${scenario.title}`}
+                  title={`Scene: ${scenarioIndexLabel(scenario)}`}
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   src={activeFileVideo}
                   onError={() => setVideoBroken(true)}
