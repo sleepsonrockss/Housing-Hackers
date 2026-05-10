@@ -300,7 +300,7 @@ export default function Chapters() {
                     <Link
                       to={
                         ch.status === "active"
-                          ? `/game?day=${ch.day}`
+                          ? `/game/day/${ch.day}`
                           : "#"
                       }
                       style={{

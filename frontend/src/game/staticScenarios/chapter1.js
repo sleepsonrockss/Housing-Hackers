@@ -1,194 +1,277 @@
 /**
- * Chapter 1 — Survival Money (linear tour: every beat in order, then outro → Chapter 2).
- * Replace `videoSrc` / `outcomeVideoSrc` with your per-question MP4 paths under `public/`.
+ * Chapter 1 — Survival Money (NextTenant v2).
+ * Amounts use {{balance}} / {{amt:N}} against live money.
+ * Deltas are study-scaled (~50/50 money vs stress impact): moderate |money| and |stress| so runs rarely hit $0 or 100 stress early.
  */
-
-const VID = {
-  /** Placeholder paths — drop files here or change URLs when assets exist */
-  q1scene: "/media/ch1/c1-q1-scene.mp4",
-  q1outBuy: "/media/ch1/c1-q1-outcome-buy.mp4",
-  q1outWait: "/media/ch1/c1-q1-outcome-wait.mp4",
-  q1outSkip: "/media/ch1/c1-q1-outcome-skip.mp4",
-  tightScene: "/media/ch1/c1-tight-scene.mp4",
-  biteScene: "/media/ch1/c1-bite-scene.mp4",
-  calmScene: "/media/ch1/c1-calm-scene.mp4",
-};
 
 export const CHAPTER_1_SCENARIOS = {
   "c1-q1": {
     id: "c1-q1",
     chapter: 1,
-    title: "First week — impulse vs plan",
+    title: "Q1.1",
     mood: "uncertain",
-    videoSrc: VID.q1scene,
-    situation: `It's your first week in your own place. After rent and what you've already spent, you have about {{balance}} left for the rest of the month. Your phone buzzes — a "limited time sale" from a store you love. It's a hoodie you've been wanting for {{amt:65}}. You think: I deserve something nice. This place feels so empty.`,
+    situation: `It's your first week in your own place. Income support and rent already cleared — you have about {{balance}} left for the rest of the month. Your phone buzzes — a "limited time sale" from a store you love. It's a hoodie you've been wanting for {{amt:65}}. You think: I deserve something nice. This place feels so empty.`,
     choices: [
       {
         id: 1,
         text: "Buy it — you've been through a lot and you deserve it.",
-        moneyDelta: -65,
-        mentalBatteryDelta: 8,
-        stressDelta: 12,
+        moneyDelta: -28,
+        stressDelta: 8,
         flagsSet: ["splurged_hoodie_c1"],
         consequence: "negative",
         outcome:
-          "You tap checkout. The hoodie arrives fast — small win. Then you look at your accounts: the margin you had for food and transit just got thinner.",
-        lesson: "Impulse comfort buys shrink the cushion that keeps you safe when the next bill lands.",
-        nextId: "c1-tight_week",
-        outcomeVideoSrc: VID.q1outBuy,
+          "You tap checkout. The hoodie arrives fast — a small win in the moment. Then the month feels thinner; money anxiety can spike after the dopamine fades.",
+        lesson:
+          "Follow-up (design): by Day 20 you could be down to very little — grocery pressure can surface in Chapter 2. Teaching: Chapter 1 Money DNA — The Spender's Final Boss is impulse.",
+        nextId: "c1-q2",
       },
       {
         id: 2,
-        text: "Use the 24-hour rule — wait until tomorrow to decide.",
+        text: "Use the 24-Hour Rule — wait until tomorrow to decide.",
         moneyDelta: 0,
-        mentalBatteryDelta: -4,
-        stressDelta: -6,
+        stressDelta: -5,
         consequence: "positive",
         outcome:
-          "You set the phone down. The next day the urge is quieter; you keep the cash in your pocket for what actually shows up this month.",
-        lesson: "Pausing breaks the autopilot spend — the same skill that protects rent week.",
-        nextId: "c1-tight_week",
-        outcomeVideoSrc: VID.q1outWait,
+          "You set the phone down. The next day the urge is often quieter; you keep cash for what actually shows up this month. (Design: 70% urge passes, 30% you buy anyway — outcomes vary on replay.)",
+        lesson: "Pausing breaks autopilot spend — the same skill that protects rent week.",
+        nextId: "c1-q2",
       },
       {
         id: 3,
-        text: "Skip it — look for something similar secondhand instead.",
-        moneyDelta: -18,
-        mentalBatteryDelta: -2,
-        stressDelta: 2,
+        text: "Compromise — look for the same thing secondhand online.",
+        moneyDelta: -9,
+        stressDelta: 0,
         consequence: "positive",
         outcome:
-          "You find a used option for less. It's not the exact hoodie, but your balance stays healthier for groceries and surprises.",
-        lesson: "Trade-offs beat all-or-nothing: you still get warmth without carving rent-week safety.",
-        nextId: "c1-tight_week",
-        outcomeVideoSrc: VID.q1outSkip,
+          "You find a similar hoodie for less. It's not the exact one, but your margin stays healthier for groceries and surprises.",
+        lesson: "Trade-offs beat all-or-nothing. Teaching: Chapter 1 Money DNA.",
+        nextId: "c1-q2",
       },
     ],
   },
 
-  "c1-tight_week": {
-    id: "c1-tight_week",
+  "c1-q2": {
+    id: "c1-q2",
     chapter: 1,
-    title: "Mid-month — less margin",
+    title: "Q1.2",
     mood: "stressed",
-    videoSrc: VID.tightScene,
-    situation:
-      "Rent cleared, but you're feeling the squeeze. Transit pass renews soon, and a friend wants to meet for food downtown. You open your banking app: {{balance}} is what's left until payday.",
+    situation: `You set up automatic rent payment. But groceries cleaned out your account more than you expected. It's the 1st. Your rent autopay bounced — an NSF (Non-Sufficient Funds) fee just hit: {{amt:35}}. Your landlord texts: "Payment didn't go through." You have about {{balance}} on hand right now.`,
     choices: [
       {
         id: 1,
-        text: "Pay for transit and say no to the pricey dinner — cook at home.",
-        moneyDelta: -85,
+        text: "Immediately e-transfer the rent manually and call the bank about the NSF fee.",
+        moneyDelta: -18,
+        stressDelta: -6,
+        consequence: "positive",
+        outcome:
+          "You handle the rent and start the fee dispute. (Design: 60% bank applies the cap and refunds part of the fee, 40% they don't — varies on replay.)",
+        lesson: "Teaching: Chapter 2 Rules of Engagement — NSF fee cap, timelines, and documentation.",
+        nextId: "c1-q3",
+      },
+      {
+        id: 2,
+        text: "Pay the rent — deal with the NSF fee later.",
+        moneyDelta: -18,
         stressDelta: 6,
-        mentalBatteryDelta: -8,
-        consequence: "positive",
-        outcome: "It's awkward to say no, but you keep mobility and food covered. The month stays ugly-but-survivable.",
-        lesson: "When the cushion is thin, fixed costs win over social pressure.",
-        nextId: "c1-bite_back",
-      },
-      {
-        id: 2,
-        text: "Go out anyway — you'll figure out groceries later.",
-        moneyDelta: -55,
-        stressDelta: 18,
-        mentalBatteryDelta: 6,
-        consequence: "negative",
-        outcome: "Fun for one night. Three days later you're stacking cheap carbs and counting coins — stress spikes.",
-        lesson: "Social spending after a splurge stacks risk fast.",
-        nextId: "c1-bite_back",
-      },
-    ],
-  },
-
-  /** Only reached from the “tight week” path — references earlier splurge. */
-  "c1-bite_back": {
-    id: "c1-bite_back",
-    chapter: 1,
-    title: "When earlier choices show up",
-    mood: "anxious",
-    videoSrc: VID.biteScene,
-    situation:
-      "A small emergency hits: not huge, but not zero. Because your margin was already shaved, this feels bigger than it is. That earlier \"treat yourself\" moment flashes in your head — not as guilt, as math. You have {{balance}} on hand right now.",
-    choices: [
-      {
-        id: 1,
-        text: "Borrow from a friend to bridge — pay them back on payday.",
-        moneyDelta: 80,
-        stressDelta: 14,
-        mentalBatteryDelta: -10,
         consequence: "negative",
         outcome:
-          "It solves the week, but dependency grows. You promised yourself independence — now you're rehearsing awkward texts.",
-        lesson: "Short-term relief can mortgage dignity; better to guard margin before the crisis.",
-        nextId: "c1-calm_week",
+          "Rent moves, but the fee sits unresolved. Lingering fees can stack if another payment bounces later.",
+        lesson: "Follow-up risk: another bounce in Chapter 2 can compound costs.",
+        nextId: "c1-q3",
       },
       {
-        id: 2,
-        text: "Call 211 / community intake and ask what emergency supports exist (food bank, utility arrear help).",
+        id: 3,
+        text: "Text the landlord explaining what happened and ask for 48 hours.",
         moneyDelta: 0,
-        stressDelta: -8,
-        mentalBatteryDelta: -12,
+        stressDelta: 4,
         consequence: "positive",
         outcome:
-          "It's humbling to ask — and you get a real path: food hamper, a payment plan worksheet, a caseworker who doesn't judge.",
-        lesson: "Systems exist because margins fail sometimes; using them early beats hiding until collapse.",
-        nextId: "c1-calm_week",
+          "Hard message to send. (Design: landlord tone can be warm or cold — stress might drop or spike on replay.)",
+        lesson: "Teaching: Chapter 2 — 48-hour rule and professional communication.",
+        nextId: "c1-q3",
       },
     ],
   },
 
-  "c1-calm_week": {
-    id: "c1-calm_week",
+  "c1-q3": {
+    id: "c1-q3",
     chapter: 1,
-    title: "Mid-month — more breathing room",
-    mood: "hopeful",
-    videoSrc: VID.calmScene,
-    situation:
-      "Nothing heroic — just a normal week. Bills land, but you still see {{balance}} left with room to handle small surprises. You skim a tenant-rights article: it keeps saying RTA for your province, while a group chat about deposits mentions RTDRS for Alberta hearings—same stress, different acronyms.",
+    title: "Q1.3",
+    mood: "anxious",
+    situation: `You're several days from your next cheque. You have about {{balance}}. You need about {{amt:60}} for groceries and a bus pass to make appointments this week. A "QuickCash" sign is on your way home. No credit check. Money in 10 minutes.`,
     choices: [
       {
         id: 1,
-        text: "Move $25 into a tiny emergency jar anyway — boring, but future-you insurance.",
-        moneyDelta: -25,
-        stressDelta: -10,
-        mentalBatteryDelta: 4,
-        consequence: "excellent",
-        outcome: "The week stays calm. When a small fee hits, you don't spiral — you adjust once and keep going.",
-        lesson: "Boring wins compound: margin is the antidote to panic.",
-        nextId: "c1-chapter-outro",
+        text: "Take the payday loan ($60 borrowed, $95 owed on payday).",
+        moneyDelta: 24,
+        stressDelta: 9,
+        flagsSet: ["payday_loan_c1"],
+        consequence: "negative",
+        outcome:
+          "Cash lands fast — relief now, pressure later. The repayment window can pull you back into shortfall next cycle.",
+        lesson: "Teaching: Chapter 3 — predatory debt and payday loans.",
+        nextId: "c1-q4",
       },
       {
         id: 2,
-        text: "Spend the cushion on a night out — you'll rebuild next cheque.",
-        moneyDelta: -70,
-        stressDelta: 4,
-        mentalBatteryDelta: 10,
+        text: "Call 211 Alberta — ask about emergency food and transit support.",
+        moneyDelta: 0,
+        stressDelta: -6,
+        consequence: "positive",
+        outcome:
+          "It's hard to ask. (Design: sometimes a referral exists this week, sometimes not — vary on replay.) Long hold times add stress in real life.",
+        lesson: "Systems exist because margins fail sometimes; using them early beats hiding until collapse.",
+        nextId: "c1-q4",
+      },
+      {
+        id: 3,
+        text: "Ask your support worker if there's an emergency fund.",
+        moneyDelta: 0,
+        stressDelta: -7,
+        consequence: "positive",
+        outcome:
+          "Vulnerability costs something upfront. (Design: often a small fund exists, sometimes not this cycle.)",
+        lesson: "Formal support is part of your safety net when cash and time don't line up.",
+        nextId: "c1-q4",
+      },
+      {
+        id: 4,
+        text: "Skip the bus pass — walk to only the most critical appointment.",
+        moneyDelta: 0,
+        stressDelta: 5,
         consequence: "negative",
-        outcome: "Fun now. If anything else breaks this month, you'll feel that choice — not as morality, as arithmetic.",
-        lesson: "Even after a good week, spending the whole cushion invites the next week to hurt.",
-        nextId: "c1-chapter-outro",
+        outcome:
+          "You protect cash, but you pay in time, weather, and fatigue — missed non-critical supports can echo later.",
+        lesson: "Follow-up risk (design): missed appointments can ripple into Chapter 4 supports.",
+        nextId: "c1-q4",
       },
     ],
   },
 
-  "c1-chapter-outro": {
-    id: "c1-chapter-outro",
+  "c1-q4": {
+    id: "c1-q4",
     chapter: 1,
-    title: "Chapter 1 complete — Survival Money",
-    mood: "hopeful",
-    situation:
-      "You have played through every Survival Money beat in this chapter. Your choices still matter for stress and battery, but the scripted tour is done for now. Next: Chapter 2 focuses on rental safety and paperwork.",
+    title: "Q1.4",
+    mood: "tense",
+    situation: `Your budget is stretched. You have about {{balance}} left for the next stretch of the month. You're weighing Netflix ({{amt:18}}), a bus pass ({{amt:35}} — you need it for appointments), groceries (about {{amt:40}}), and your phone bill ({{amt:45}} — autopay in 4 days). The bills coming up add up to more than what you have. What do you cut?`,
     choices: [
       {
         id: 1,
-        text: "Continue to Chapter 2 — Rental Survival",
+        text: "Cancel Netflix, buy groceries, keep bus pass — let phone bill bounce.",
+        moneyDelta: -32,
+        stressDelta: 8,
+        consequence: "negative",
+        outcome:
+          "Food and mobility stay safer short-term, but a bounced phone bill can trigger fees and chaos.",
+        lesson: "Follow-up risk: phone NSF can open Chapter 2 with fee pressure.",
+        nextId: "c1-q5",
+      },
+      {
+        id: 2,
+        text: "Cancel Netflix, pay phone bill, skip groceries this week.",
+        moneyDelta: -28,
+        stressDelta: 9,
+        consequence: "negative",
+        outcome:
+          "Bills look calmer on paper, but hunger hits focus and stability — stress climbs.",
+        lesson: "Follow-up (design): low energy can blunt gains for the next beats.",
+        nextId: "c1-q5",
+      },
+      {
+        id: 3,
+        text: "Cancel Netflix, buy partial groceries ($20 basics only), keep bus pass, pay phone bill.",
+        moneyDelta: -35,
+        stressDelta: -7,
+        consequence: "excellent",
+        outcome:
+          "Tight, but you kept the core needs first — the month stays ugly-but-survivable.",
+        lesson: "Teaching: Chapter 1 Activity 1.5 — Needs vs wants framework.",
+        nextId: "c1-q5",
+      },
+      {
+        id: 4,
+        text: "Keep everything and hope something comes through.",
+        moneyDelta: 0,
+        stressDelta: 10,
+        consequence: "negative",
+        outcome:
+          "Avoidance feels like rest until the inbox fills with warnings.",
+        lesson: "Follow-up risk (design): multiple bounces can stack NSF fees in Chapter 2.",
+        nextId: "c1-q5",
+      },
+    ],
+  },
+
+  "c1-q5": {
+    id: "c1-q5",
+    chapter: 1,
+    title: "Q1.5",
+    mood: "conflicted",
+    situation: `Someone from your old situation texts: "Hey can u lend me $80 just till friday I swear ill pay back." Friday came and went last time. You have about {{balance}} left for the next ten days.`,
+    choices: [
+      {
+        id: 1,
+        text: "Send the $80 — they sound desperate.",
+        moneyDelta: -32,
+        stressDelta: 9,
+        consequence: "negative",
+        outcome:
+          "You move money fast. (Design: often they don't repay on time — grocery danger follows.)",
+        lesson: "Teaching: Chapter 1 The Giver — pay bills and stabilize before giving.",
+        nextId: "c1-outro",
+      },
+      {
+        id: 2,
+        text: "Offer $20 and say it's genuinely all you can spare.",
+        moneyDelta: -10,
+        stressDelta: 5,
+        consequence: "negative",
+        outcome:
+          "Compromise is uncomfortable. (Design: they may accept or push for more.)",
+        lesson: "Boundaries protect housing stability, not coldness.",
+        nextId: "c1-outro",
+      },
+      {
+        id: 3,
+        text: "Say no — explain you're tight this month.",
+        moneyDelta: 0,
+        stressDelta: 5,
+        consequence: "positive",
+        outcome:
+          "Guilt is heavy, but your rent week stays less exposed.",
+        lesson: "Relationship tension can surface later — housing margin stays safer now.",
+        nextId: "c1-outro",
+      },
+      {
+        id: 4,
+        text: "Leave it on read.",
+        moneyDelta: 0,
+        stressDelta: 7,
+        consequence: "negative",
+        outcome:
+          "Short-term avoidance — the message sits in your chest and can escalate later.",
+        lesson: "Silence isn't neutral; it often purchases future conflict.",
+        nextId: "c1-outro",
+      },
+    ],
+  },
+
+  "c1-outro": {
+    id: "c1-outro",
+    chapter: 1,
+    title: "Continue",
+    mood: "reflective",
+    situation: "",
+    choices: [
+      {
+        id: 1,
+        text: "Next chapter",
         moneyDelta: 0,
         stressDelta: 0,
-        mentalBatteryDelta: 0,
         consequence: "positive",
         outcome: "",
         lesson: "",
-        nextId: "c2-lin-1",
+        nextId: "c2-q1",
       },
     ],
   },

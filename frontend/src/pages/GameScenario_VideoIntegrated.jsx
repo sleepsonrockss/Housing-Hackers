@@ -2,12 +2,19 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useVeoVideo } from "../hooks/useVeoVideo";
 import { interpolateScenarioText } from "../game/interpolate";
-import { applyChoiceDeltas, INITIAL_PLAYER_STATS, mergeFlags } from "../game/playerModel";
+import {
+  applyChoiceDeltas,
+  getGameOverReason,
+  INITIAL_PLAYER_STATS,
+  mergeFlags,
+  normalizeStats,
+} from "../game/playerModel";
 import { clearPersistedRun, loadPersistedRun, savePersistedRun } from "../game/playerSessionPersist";
 import { getScenario, getStartScenarioId } from "../game/staticScenarios/index";
 import { CHAPTER_COUNT } from "../game/gameStructure";
 import { HOUSING_GLOSSARY } from "../game/housingGlossary";
 import { GlossaryRichText } from "../components/GlossaryRichText";
+import FiveDayProgress from "../components/FiveDayProgress";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
@@ -28,14 +35,28 @@ export default function GameScenario() {
 
   const [stats, setStats] = useState(() => {
     const saved = loadPersistedRun();
-    return saved?.stats ? { ...INITIAL_PLAYER_STATS, ...saved.stats } : { ...INITIAL_PLAYER_STATS };
+    return saved?.stats ? normalizeStats({ ...INITIAL_PLAYER_STATS, ...saved.stats }) : { ...INITIAL_PLAYER_STATS };
+  });
+  const [gameOverReason, setGameOverReason] = useState(() => {
+    const saved = loadPersistedRun();
+    if (!saved) return null;
+    if (saved.gameOverReason === "money" || saved.gameOverReason === "stress") return saved.gameOverReason;
+    const s = saved.stats ? normalizeStats({ ...INITIAL_PLAYER_STATS, ...saved.stats }) : { ...INITIAL_PLAYER_STATS };
+    return getGameOverReason(s);
   });
   const [flags, setFlags] = useState(() => {
     const saved = loadPersistedRun();
     return saved?.flags ? { ...saved.flags } : {};
   });
+  const [unlockedDay, setUnlockedDay] = useState(() => {
+    const saved = loadPersistedRun();
+    return typeof saved?.unlockedDay === "number" ? saved.unlockedDay : 1;
+  });
+  const [answersByChapter, setAnswersByChapter] = useState(() => {
+    const saved = loadPersistedRun();
+    return saved?.answersByChapter && typeof saved.answersByChapter === "object" ? { ...saved.answersByChapter } : {};
+  });
   const [scenarioId, setScenarioId] = useState(() => getStartScenarioId(dayParam));
-  const [beatIndex, setBeatIndex] = useState(1);
   /** While set, choice UI is locked and we auto-advance after a short delay (or money float). */
   const [pendingAdvance, setPendingAdvance] = useState(null);
   const [runComplete, setRunComplete] = useState(false);
@@ -52,23 +73,32 @@ export default function GameScenario() {
     clearPersistedRun();
     setStats({ ...INITIAL_PLAYER_STATS });
     setFlags({});
+    setUnlockedDay(1);
+    setAnswersByChapter({});
+    setGameOverReason(null);
     const next = new URLSearchParams(searchParams);
     next.delete("reset");
     setSearchParams(next, { replace: true });
   }, [searchParams, setSearchParams]);
 
-  /** Jumping chapter from the list only moves the starting beat; money, stress, battery, and flags carry on. */
+  /** Jumping day from the strip clamps to unlocked progress; money, stress, and flags still carry on. */
   useEffect(() => {
-    setScenarioId(getStartScenarioId(dayParam));
-    setBeatIndex(1);
+    if (gameOverReason) return;
+    const requested = Math.max(1, Math.min(CHAPTER_COUNT, parseInt(String(dayParam), 10) || 1));
+    const safe = Math.min(requested, unlockedDay);
+    if (safe !== requested) {
+      setSearchParams({ day: String(safe) }, { replace: true });
+      return;
+    }
+    setScenarioId(getStartScenarioId(String(safe)));
     setPendingAdvance(null);
     setRunComplete(false);
     setVideoBroken(false);
-  }, [dayParam]);
+  }, [dayParam, unlockedDay, gameOverReason, setSearchParams]);
 
   useEffect(() => {
-    savePersistedRun(stats, flags);
-  }, [stats, flags]);
+    savePersistedRun({ stats, flags, unlockedDay, answersByChapter, gameOverReason });
+  }, [stats, flags, unlockedDay, answersByChapter, gameOverReason]);
 
   useEffect(() => {
     setVideoBroken(false);
@@ -76,17 +106,25 @@ export default function GameScenario() {
 
   useEffect(() => {
     if (!pendingAdvance) return;
-    const { nextId, spendAmount } = pendingAdvance;
+    const { nextId, moneyDelta: md, stressDelta: sd } = pendingAdvance;
+    const hasDeltaMotion =
+      (md != null && md !== 0) || (sd != null && sd !== 0);
     const reduced =
       typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const baseMs = spendAmount != null ? ADVANCE_AFTER_SPEND_MS : ADVANCE_NO_SPEND_MS;
+    const baseMs = hasDeltaMotion ? ADVANCE_AFTER_SPEND_MS : ADVANCE_NO_SPEND_MS;
     const ms = reduced ? Math.min(baseMs, ADVANCE_REDUCED_MOTION_CAP_MS) : baseMs;
     const id = window.setTimeout(() => {
+      const go = pendingAdvance?.gameOverReason;
       setPendingAdvance(null);
+      if (go === "money" || go === "stress") {
+        setGameOverReason(go);
+        return;
+      }
       if (nextId && getScenario(nextId)) {
+        const nextSc = getScenario(nextId);
+        setUnlockedDay((u) => Math.max(u, nextSc.chapter));
         setRunComplete(false);
         setScenarioId(nextId);
-        setBeatIndex((n) => n + 1);
         setVideoBroken(false);
       } else {
         setRunComplete(true);
@@ -136,15 +174,35 @@ export default function GameScenario() {
   }, [scenario?.id, activeFileVideo]);
 
   const handleChoiceSelect = (choiceId) => {
-    if (!scenario || pendingAdvance) return;
+    if (!scenario || pendingAdvance || gameOverReason) return;
     const chosen = scenario.choices.find((ch) => String(ch.id) === String(choiceId));
     if (!chosen) return;
-    setStats((prev) => applyChoiceDeltas(prev, chosen));
+    const nextStats = applyChoiceDeltas(stats, chosen);
+    setStats(nextStats);
+    const over = getGameOverReason(nextStats);
     setFlags((prev) => mergeFlags(prev, chosen));
-    const spendAmount =
-      typeof chosen.moneyDelta === "number" && chosen.moneyDelta < 0 ? -chosen.moneyDelta : null;
-    if (spendAmount != null) setSpendAnimKey((k) => k + 1);
-    setPendingAdvance({ nextId: chosen.nextId ?? null, spendAmount });
+    const chKey = String(scenario.chapter);
+    const choiceLabel = interpolateScenarioText(chosen.text, stats);
+    const logAnswer = /^c\d+-q\d+$/.test(scenario.id);
+    if (logAnswer) {
+      setAnswersByChapter((prev) => ({
+        ...prev,
+        [chKey]: [
+          ...(Array.isArray(prev[chKey]) ? prev[chKey] : []),
+          { scenarioId: scenario.id, scenarioTitle: scenario.title, choiceText: choiceLabel },
+        ],
+      }));
+    }
+    const md = typeof chosen.moneyDelta === "number" ? chosen.moneyDelta : null;
+    const sd = typeof chosen.stressDelta === "number" ? chosen.stressDelta : null;
+    const hasDeltaMotion = (md != null && md !== 0) || (sd != null && sd !== 0);
+    if (hasDeltaMotion) setSpendAnimKey((k) => k + 1);
+    setPendingAdvance({
+      nextId: chosen.nextId ?? null,
+      moneyDelta: md,
+      stressDelta: sd,
+      gameOverReason: over,
+    });
   };
 
   if (!scenario) {
@@ -177,11 +235,12 @@ export default function GameScenario() {
           gap: "12px",
         }}
       >
-        <div>
-          <div style={{ fontSize: "11px", color: "#52525b", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-            Beat {beatIndex} · Chapter {scenario.chapter} of {CHAPTER_COUNT}
-          </div>
-          <div style={{ fontSize: "16px", fontWeight: 600 }}>{scenario.title}</div>
+        <div id="scenario-heading" style={{ fontSize: "16px", fontWeight: 600 }}>
+          {runComplete && scenario.chapter >= CHAPTER_COUNT
+            ? "Done"
+            : runComplete
+              ? `Ch.${scenario.chapter}`
+              : scenario.title}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
           <div style={{ display: "flex", gap: "16px", fontSize: "12px", color: "#a1a1aa" }}>
@@ -189,10 +248,8 @@ export default function GameScenario() {
               Money <strong style={{ color: "#fafafa" }}>${stats.money}</strong>
             </span>
             <span>
-              Battery <strong style={{ color: "#fafafa" }}>{stats.mentalBattery}</strong>
-            </span>
-            <span>
               Stress <strong style={{ color: "#fafafa" }}>{stats.stress}</strong>
+              <span style={{ color: "#52525b", fontWeight: 400 }}> / 100</span>
             </span>
           </div>
           <Link
@@ -288,10 +345,49 @@ export default function GameScenario() {
 
         <div
           className="game-scenario-decision-col"
-          aria-busy={pendingAdvance ? "true" : "false"}
-          style={pendingAdvance ? { opacity: 0.55, pointerEvents: "none" } : undefined}
+          aria-busy={pendingAdvance || gameOverReason ? "true" : "false"}
+          style={pendingAdvance || gameOverReason ? { opacity: gameOverReason ? 1 : 0.55, pointerEvents: gameOverReason ? "auto" : "none" } : undefined}
         >
-          {runComplete ? (
+          {gameOverReason ? (
+            <section className="game-scenario-question-block" aria-labelledby="game-over-heading">
+              <h2 id="game-over-heading" className="game-scenario-title">
+                Game over
+              </h2>
+              <p className="game-scenario-situation" style={{ marginBottom: "1.25rem" }}>
+                {gameOverReason === "money"
+                  ? "You ran out of money. The run ends when cash hits $0 or below."
+                  : "Your stress meter hit the maximum (100). Higher numbers mean more strain all along — this is the limit."}
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "flex-start" }}>
+                <Link
+                  to="/game?reset=1"
+                  className="game-chapters-link"
+                  style={{
+                    fontSize: "15px",
+                    color: "#93c5fd",
+                    textUnderlineOffset: "4px",
+                    fontWeight: 600,
+                  }}
+                  aria-label="Start a new run with reset stats"
+                >
+                  Start a new run →
+                </Link>
+                <Link
+                  to="/chapters"
+                  className="game-chapters-link"
+                  style={{
+                    fontSize: "15px",
+                    color: "#a1a1aa",
+                    textUnderlineOffset: "4px",
+                    fontWeight: 600,
+                  }}
+                  aria-label="Return to full chapter list"
+                >
+                  All chapters
+                </Link>
+              </div>
+            </section>
+          ) : runComplete ? (
             <section className="game-scenario-question-block" aria-labelledby="chapter-end-heading">
               <h2 id="chapter-end-heading" className="game-scenario-title">
                 {scenario.chapter >= CHAPTER_COUNT
@@ -343,12 +439,11 @@ export default function GameScenario() {
                 aria-live="polite"
                 aria-atomic="true"
               >
-                <h2 id="scenario-heading" className="game-scenario-title">
-                  {scenario.title}
-                </h2>
-                <p id="scenario-situation-live" className="game-scenario-situation">
-                  <GlossaryRichText text={situationDisplay} onOpenTerm={setGlossaryKey} />
-                </p>
+                {situationDisplay.trim() ? (
+                  <p id="scenario-situation-live" className="game-scenario-situation">
+                    <GlossaryRichText text={situationDisplay} onOpenTerm={setGlossaryKey} />
+                  </p>
+                ) : null}
               </section>
 
               <fieldset className="game-choice-fieldset" disabled={!!pendingAdvance}>
@@ -393,16 +488,49 @@ export default function GameScenario() {
         </div>
       </main>
 
-      {pendingAdvance?.spendAmount != null ? (
-        <div className="money-spend-overlay" aria-hidden="true">
-          <span className="money-spend-amount" key={spendAnimKey}>
-            -${pendingAdvance.spendAmount}
-          </span>
+      <FiveDayProgress
+        unlockedDay={unlockedDay}
+        currentChapter={scenario.chapter}
+        runComplete={runComplete}
+        answersByChapter={answersByChapter}
+        navigationLocked={!!gameOverReason}
+      />
+
+      {pendingAdvance &&
+      ((pendingAdvance.moneyDelta != null && pendingAdvance.moneyDelta !== 0) ||
+        (pendingAdvance.stressDelta != null && pendingAdvance.stressDelta !== 0)) ? (
+        <div className="stat-delta-overlay" aria-hidden="true">
+          <div className="stat-delta-row" key={spendAnimKey}>
+            {pendingAdvance.moneyDelta != null && pendingAdvance.moneyDelta !== 0 ? (
+              <span className="stat-delta-money">
+                {pendingAdvance.moneyDelta > 0
+                  ? `+$${pendingAdvance.moneyDelta}`
+                  : `-$${Math.abs(pendingAdvance.moneyDelta)}`}
+              </span>
+            ) : null}
+            {pendingAdvance.stressDelta != null && pendingAdvance.stressDelta !== 0 ? (
+              <span className="stat-delta-stress">
+                {pendingAdvance.stressDelta > 0 ? "+" : ""}
+                {pendingAdvance.stressDelta}
+              </span>
+            ) : null}
+          </div>
         </div>
       ) : null}
-      {pendingAdvance?.spendAmount != null ? (
+      {pendingAdvance &&
+      ((pendingAdvance.moneyDelta != null && pendingAdvance.moneyDelta !== 0) ||
+        (pendingAdvance.stressDelta != null && pendingAdvance.stressDelta !== 0)) ? (
         <span className="visually-hidden" aria-live="polite">
-          {`Spent ${pendingAdvance.spendAmount} dollars. Balance updated.`}
+          {[
+            pendingAdvance.moneyDelta != null && pendingAdvance.moneyDelta !== 0
+              ? `Money ${pendingAdvance.moneyDelta > 0 ? "gained" : "spent"} ${Math.abs(pendingAdvance.moneyDelta)} dollars.`
+              : null,
+            pendingAdvance.stressDelta != null && pendingAdvance.stressDelta !== 0
+              ? `Strain ${pendingAdvance.stressDelta > 0 ? "up" : "down"} ${Math.abs(pendingAdvance.stressDelta)}.`
+              : null,
+          ]
+            .filter(Boolean)
+            .join(" ")}
         </span>
       ) : null}
 
@@ -596,7 +724,7 @@ export default function GameScenario() {
           cursor: not-allowed;
           opacity: 0.72;
         }
-        .money-spend-overlay {
+        .stat-delta-overlay {
           position: fixed;
           inset: 0;
           z-index: 100;
@@ -605,15 +733,25 @@ export default function GameScenario() {
           justify-content: center;
           pointer-events: none;
         }
-        .money-spend-amount {
-          font-size: clamp(2.25rem, 9vw, 4.25rem);
+        .stat-delta-row {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: baseline;
+          justify-content: center;
+          gap: clamp(0.75rem, 3vw, 1.75rem);
+          font-size: clamp(1.75rem, 7vw, 3.25rem);
           font-weight: 800;
           letter-spacing: -0.02em;
-          color: #f87171;
           text-shadow: 0 6px 40px rgba(0, 0, 0, 0.9), 0 0 1px rgba(0, 0, 0, 1);
-          animation: moneySpendFloat 1.55s ease-out forwards;
+          animation: statDeltaFloat 1.55s ease-out forwards;
         }
-        @keyframes moneySpendFloat {
+        .stat-delta-money {
+          color: #4ade80;
+        }
+        .stat-delta-stress {
+          color: #f87171;
+        }
+        @keyframes statDeltaFloat {
           0% {
             opacity: 0;
             transform: translateY(18px) scale(0.88);
@@ -632,12 +770,12 @@ export default function GameScenario() {
           }
         }
         @media (prefers-reduced-motion: reduce) {
-          .money-spend-amount {
-            animation-name: moneySpendFloatReduced;
+          .stat-delta-row {
+            animation-name: statDeltaFloatReduced;
             animation-duration: 0.38s;
           }
         }
-        @keyframes moneySpendFloatReduced {
+        @keyframes statDeltaFloatReduced {
           0% {
             opacity: 0;
           }

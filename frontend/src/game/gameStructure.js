@@ -82,7 +82,7 @@ export const ESTIMATED_SCENARIO_TOTAL = GAME_CHAPTERS.reduce((sum, c) => sum + c
 
 const TAG_FILTERS = ["All", "Money", "Rental", "People", "Burnout", "Future"];
 
-/** Chapters grid: `/game?day=` still uses `day` as chapter index (1–5) for routing compatibility. */
+/** Chapters grid: `day` is chapter index (1–5). Review: `/game/day/N`; play: `/game?day=N`. */
 export function getChaptersPageItems() {
   return GAME_CHAPTERS.map((c, i) => {
     const [d0, d1] = c.workbookDaySpan;
